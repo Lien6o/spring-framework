@@ -948,6 +948,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 							"] with [" + beanDefinition + "]");
 				}
 			}
+			// 这里是核心方法
 			this.beanDefinitionMap.put(beanName, beanDefinition);
 		}
 		else {
