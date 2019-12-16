@@ -82,12 +82,18 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 	 * from the given component classes and automatically refreshing the context.
 	 * @param componentClasses one or more component classes &mdash; for example,
 	 * {@link Configuration @Configuration} classes
+	 *                         todo
 	 */
 	public AnnotationConfigApplicationContext(Class<?>... componentClasses) {
-		// 执行构造方法 父类构造方法 初始化 reader register
+		// 执行构造方法 父类构造方法 初始化 reader  scanner
+		// reader 中 BeanDefinitionRegistry register 注册了6个 bd
+		// org.springframework.context.annotation.AnnotationConfigUtils#registerAnnotationConfigProcessors
+		// scanner 没啥大用
 		this();
-		// 注册到 beanDefinitionMap
+		// componentClasses 遍历 注册到 beanDefinitionMap
 		register(componentClasses);
+
+
 		refresh();
 	}
 
