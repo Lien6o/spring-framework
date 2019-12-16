@@ -253,6 +253,16 @@ class ConfigurationClassParser {
 	 * Apply processing and build a complete {@link ConfigurationClass} by reading the
 	 * annotations, members and methods from the source class. This method can be called
 	 * multiple times as relevant sources are discovered.
+	 *
+	 * 一个配置类的成员类(配置类内嵌套定义的类)也可能适配类，先遍历这些成员配置类，调用processConfigurationClass处理它们;
+	 * 处理配置类上的注解@PropertySources,@PropertySource
+	 * 处理配置类上的注解@ComponentScans,@ComponentScan
+	 * 处理配置类上的注解@Import
+	 * 处理配置类上的注解@ImportResource
+	 * 处理配置类中每个带有@Bean注解的方法
+	 * 处理配置类所实现接口的缺省方法
+	 * 检查父类是否需要处理，如果父类需要处理返回父类，否则返回null
+	 *
 	 * @param configClass the configuration class being build
 	 * @param sourceClass a source class
 	 * @return the superclass, or {@code null} if none found or previously processed
@@ -302,6 +312,7 @@ class ConfigurationClassParser {
 		}
 
 		// Process any @Import annotations
+		// todo 处理配置类上的注解@Import
 		processImports(configClass, sourceClass, getImports(sourceClass), true);
 
 		// Process any @ImportResource annotations
@@ -554,8 +565,14 @@ class ConfigurationClassParser {
 		}
 		else {
 			this.importStack.push(configClass);
+			// 循环处理每一个@Import,每个@Import可能导入三种类型的类 :
+			// 1. ImportSelector
+			// 2. ImportBeanDefinitionRegistrar
+			// 3. 其他类型，都当作配置类处理，也就是相当于使用了注解@Configuration的配置类
+			// 下面的for循环中对这三种情况执行了不同的处理逻辑
 			try {
 				for (SourceClass candidate : importCandidates) {
+					// todo 这里是处理 ImportSelector 的地方
 					if (candidate.isAssignable(ImportSelector.class)) {
 						// Candidate class is an ImportSelector -> delegate to it to determine imports
 						Class<?> candidateClass = candidate.loadClass();
@@ -570,16 +587,19 @@ class ConfigurationClassParser {
 							processImports(configClass, currentSourceClass, importSourceClasses, false);
 						}
 					}
+					// todo 这里是处理 ImportBeanDefinitionRegistrar 的地方
 					else if (candidate.isAssignable(ImportBeanDefinitionRegistrar.class)) {
 						// Candidate class is an ImportBeanDefinitionRegistrar ->
-						// delegate to it to register additional bean definitions
+						// delegate to it to register additional bean definitions 委托它注册其他 bd
 						Class<?> candidateClass = candidate.loadClass();
+						// 实例化
 						ImportBeanDefinitionRegistrar registrar =
 								ParserStrategyUtils.instantiateClass(candidateClass, ImportBeanDefinitionRegistrar.class,
 										this.environment, this.resourceLoader, this.registry);
 						configClass.addImportBeanDefinitionRegistrar(registrar, currentSourceClass.getMetadata());
 					}
 					else {
+						// todo 这里是处理@Configuration按照的地方
 						// Candidate class not an ImportSelector or ImportBeanDefinitionRegistrar ->
 						// process it as an @Configuration class
 						this.importStack.registerImport(
