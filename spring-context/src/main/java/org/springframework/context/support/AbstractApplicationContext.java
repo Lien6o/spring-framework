@@ -530,7 +530,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 				// 没啥用 以后更新使用
 				postProcessBeanFactory(beanFactory);
 				// BeanFactoryPostProcessor 这里是调用执行 是对BeanDefinition对象进行修改。
-				// 从名字上看, 它是BeanFactory的后处理类
+				// todo VIC 从名字上看, 它是BeanFactory的后处理类
 				// Invoke factory processors registered as beans in the context.
 				invokeBeanFactoryPostProcessors(beanFactory);
 

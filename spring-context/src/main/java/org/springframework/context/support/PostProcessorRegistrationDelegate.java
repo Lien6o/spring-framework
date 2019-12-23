@@ -35,6 +35,7 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProce
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.beans.factory.support.MergedBeanDefinitionPostProcessor;
 import org.springframework.beans.factory.support.RootBeanDefinition;
+import org.springframework.context.annotation.ConfigurationClassPostProcessor;
 import org.springframework.core.OrderComparator;
 import org.springframework.core.Ordered;
 import org.springframework.core.PriorityOrdered;
@@ -54,16 +55,18 @@ final class PostProcessorRegistrationDelegate {
 	/**
 	 * ConfigurationClassPostProcessor 配置类后置处理器
 	 * @param beanFactory
-	 * @param beanFactoryPostProcessors
+	 * @param beanFactoryPostProcessors 用户可以通过
+	 * 处理ApplicationContextInitializer，里面的一个操作就是手动注册BeanFactoryPostProcessor。
 	 */
 	public static void invokeBeanFactoryPostProcessors(
 			ConfigurableListableBeanFactory beanFactory, List<BeanFactoryPostProcessor> beanFactoryPostProcessors) {
 
 		// Invoke BeanDefinitionRegistryPostProcessors first, if any.
 		Set<String> processedBeans = new HashSet<>();
-
+		// todo 首先判断一下传入的beanFactory是不是BeanDefinitionRegistry的实例，这个BeanDefinitionRegistry是可以注册Bean的。
 		if (beanFactory instanceof BeanDefinitionRegistry) {
 			BeanDefinitionRegistry registry = (BeanDefinitionRegistry) beanFactory;
+			//  todo 常规后处理器
 			List<BeanFactoryPostProcessor> regularPostProcessors = new ArrayList<>();
 			List<BeanDefinitionRegistryPostProcessor> registryProcessors = new ArrayList<>();
 
@@ -72,6 +75,7 @@ final class PostProcessorRegistrationDelegate {
 					BeanDefinitionRegistryPostProcessor registryProcessor =
 							(BeanDefinitionRegistryPostProcessor) postProcessor;
 					// todo 这里处理了很多东西
+					// 详见 ：ConfigurationClassPostProcessor.postProcessBeanDefinitionRegistry
 					registryProcessor.postProcessBeanDefinitionRegistry(registry);
 					registryProcessors.add(registryProcessor);
 				}
@@ -147,6 +151,10 @@ final class PostProcessorRegistrationDelegate {
 		// Do not initialize FactoryBeans here: We need to leave all regular beans
 		// uninitialized to let the bean factory post-processors apply to them!
 		// 返回与给定类型（包括子类）匹配的bean的名称
+		// 这里只能拿到spring内部的BeanDefinitionRegistryPostProcessor,
+		// 因为到这里spring还没有去扫描Bean,获取不到我们通过@Component标识的自定义BeanDefinitionRegistryPostProcessor
+		// 一般默认情况下,这里只有一个,BeanName:org.springframework.context.annotation.internalConfigurationAnnotationProcessor
+		// 对应的BeanClass:ConfigurationClassPostProcessor
 		String[] postProcessorNames =
 				beanFactory.getBeanNamesForType(BeanFactoryPostProcessor.class, true, false);
 
@@ -198,6 +206,8 @@ final class PostProcessorRegistrationDelegate {
 	 * 注册后置处理器
 	 * @param beanFactory
 	 * @param applicationContext
+	 * VIC:
+	 * @see PostProcessorRegistrationDelegate#registerBeanPostProcessors(org.springframework.beans.factory.config.ConfigurableListableBeanFactory, java.util.List)
 	 */
 	public static void registerBeanPostProcessors(
 			ConfigurableListableBeanFactory beanFactory, AbstractApplicationContext applicationContext) {
