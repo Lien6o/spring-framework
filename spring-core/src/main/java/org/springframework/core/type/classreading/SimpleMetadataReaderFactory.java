@@ -77,6 +77,7 @@ public class SimpleMetadataReaderFactory implements MetadataReaderFactory {
 		try {
 			String resourcePath = ResourceLoader.CLASSPATH_URL_PREFIX +
 					ClassUtils.convertClassNameToResourcePath(className) + ClassUtils.CLASS_FILE_SUFFIX;
+			// 把该类读取成流
 			Resource resource = this.resourceLoader.getResource(resourcePath);
 			return getMetadataReader(resource);
 		}

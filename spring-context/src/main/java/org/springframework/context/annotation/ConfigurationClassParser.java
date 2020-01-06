@@ -240,6 +240,7 @@ class ConfigurationClassParser {
 		}
 
 		// Recursively process the configuration class and its superclass hierarchy.
+		// todo 递归处理配置类及其超类层次结构。 创建一个源类，没有任何Spring相关改造
 		SourceClass sourceClass = asSourceClass(configClass);
 		do {
 			// todo VIC
@@ -264,14 +265,15 @@ class ConfigurationClassParser {
 	 * 处理配置类所实现接口的缺省方法
 	 * 检查父类是否需要处理，如果父类需要处理返回父类，否则返回null
 	 *
-	 * @param configClass the configuration class being build
-	 * @param sourceClass a source class
+	 * @param configClass the configuration class being build 正在构建的配置类
+	 * @param sourceClass a source class  源类
 	 * @return the superclass, or {@code null} if none found or previously processed
 	 */
 	@Nullable
 	protected final SourceClass doProcessConfigurationClass(ConfigurationClass configClass, SourceClass sourceClass)
 			throws IOException {
 
+		// todo 处理 @Component 包扫描
 		if (configClass.getMetadata().isAnnotated(Component.class.getName())) {
 			// Recursively process any member (nested) classes first
 			processMemberClasses(configClass, sourceClass);
@@ -298,9 +300,11 @@ class ConfigurationClassParser {
 				!this.conditionEvaluator.shouldSkip(sourceClass.getMetadata(), ConfigurationPhase.REGISTER_BEAN)) {
 			for (AnnotationAttributes componentScan : componentScans) {
 				// The config class is annotated with @ComponentScan -> perform the scan immediately
+				// todo VIC  扫描bd
 				Set<BeanDefinitionHolder> scannedBeanDefinitions =
 						this.componentScanParser.parse(componentScan, sourceClass.getMetadata().getClassName());
 				// Check the set of scanned definitions for any further config classes and parse recursively if needed
+				// todo 检查扫描的定义集是否有其他配置类，并在需要时递归解析
 				for (BeanDefinitionHolder holder : scannedBeanDefinitions) {
 					BeanDefinition bdCand = holder.getBeanDefinition().getOriginatingBeanDefinition();
 					if (bdCand == null) {
@@ -364,6 +368,8 @@ class ConfigurationClassParser {
 		if (!memberClasses.isEmpty()) {
 			List<SourceClass> candidates = new ArrayList<>(memberClasses.size());
 			for (SourceClass memberClass : memberClasses) {
+				// todo isConfigurationCandidate 判断是否是这四种注解
+				// todo Component ComponentScan Import ImportResource
 				if (ConfigurationClassUtils.isConfigurationCandidate(memberClass.getMetadata()) &&
 						!memberClass.getMetadata().getClassName().equals(configClass.getMetadata().getClassName())) {
 					candidates.add(memberClass);
@@ -377,6 +383,7 @@ class ConfigurationClassParser {
 				else {
 					this.importStack.push(configClass);
 					try {
+						// todo vic 有以上注解则进行这个方法
 						processConfigurationClass(candidate.asConfigClass(configClass));
 					}
 					finally {
@@ -581,6 +588,7 @@ class ConfigurationClassParser {
 					if (candidate.isAssignable(ImportSelector.class)) {
 						// Candidate class is an ImportSelector -> delegate to it to determine imports
 						Class<?> candidateClass = candidate.loadClass();
+						// 实例化ImportSelector接口类
 						ImportSelector selector = ParserStrategyUtils.instantiateClass(candidateClass, ImportSelector.class,
 								this.environment, this.resourceLoader, this.registry);
 						if (selector instanceof DeferredImportSelector) {
@@ -698,6 +706,7 @@ class ConfigurationClassParser {
 		}
 		if (className.startsWith("java")) {
 			// Never use ASM for core java types
+			// todo 切勿对核心Java类型使用ASM
 			try {
 				return new SourceClass(ClassUtils.forName(className,
 						this.resourceLoader.getClassLoader()));
