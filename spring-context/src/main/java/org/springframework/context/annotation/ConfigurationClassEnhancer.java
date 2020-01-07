@@ -73,6 +73,7 @@ import org.springframework.util.ReflectionUtils;
 class ConfigurationClassEnhancer {
 
 	// The callbacks to use. Note that these callbacks must be stateless.
+	// TODO
 	private static final Callback[] CALLBACKS = new Callback[] {
 			new BeanMethodInterceptor(),
 			new BeanFactoryAwareMethodInterceptor(),
@@ -106,6 +107,7 @@ class ConfigurationClassEnhancer {
 			}
 			return configClass;
 		}
+		// todo newEnhancer
 		Class<?> enhancedClass = createClass(newEnhancer(configClass, classLoader));
 		if (logger.isTraceEnabled()) {
 			logger.trace(String.format("Successfully enhanced %s; enhanced class name is: %s",
@@ -119,18 +121,26 @@ class ConfigurationClassEnhancer {
 	 */
 	private Enhancer newEnhancer(Class<?> configSuperClass, @Nullable ClassLoader classLoader) {
 		Enhancer enhancer = new Enhancer();
+		// 继承父类
 		enhancer.setSuperclass(configSuperClass);
+		// todo setBeanFactory 为了让其获取 beanFactory
+		//  为了解决 自我调用问题。以后都是从容器获取这个代理类 BeanFactoryAware 实例化
 		enhancer.setInterfaces(new Class<?>[] {EnhancedConfiguration.class});
 		enhancer.setUseFactory(false);
 		enhancer.setNamingPolicy(SpringNamingPolicy.INSTANCE);
+		// todo 生成策略 添加成员变量 基于 BeanFactoryAware 设置 beanFactory
 		enhancer.setStrategy(new BeanFactoryAwareGeneratorStrategy(classLoader));
+		// 设置回调过滤器  为了解决 自我调用问题。
+		// todo VIC MethodInterceptor
 		enhancer.setCallbackFilter(CALLBACK_FILTER);
 		enhancer.setCallbackTypes(CALLBACK_FILTER.getCallbackTypes());
 		return enhancer;
 	}
 
 	/**
+	 * 使用增强器生成超类的子类
 	 * Uses enhancer to generate a subclass of superclass,
+	 * 确保为新的子类注册了回调。
 	 * ensuring that callbacks are registered for the new subclass.
 	 */
 	private Class<?> createClass(Enhancer enhancer) {
@@ -221,6 +231,9 @@ class ConfigurationClassEnhancer {
 			ClassEmitterTransformer transformer = new ClassEmitterTransformer() {
 				@Override
 				public void end_class() {
+					// todo 拓展
+					//  申明 $$beanFactory
+					//  BEAN_FACTORY_FIELD = "$$beanFactory"
 					declare_field(Constants.ACC_PUBLIC, BEAN_FACTORY_FIELD, Type.getType(BeanFactory.class), null);
 					super.end_class();
 				}
@@ -298,6 +311,8 @@ class ConfigurationClassEnhancer {
 
 
 	/**
+	 * todo
+	 *
 	 * Intercepts the invocation of any {@link Bean}-annotated methods in order to ensure proper
 	 * handling of bean semantics such as scoping and AOP proxying.
 	 * @see Bean
@@ -315,8 +330,9 @@ class ConfigurationClassEnhancer {
 		@Nullable
 		public Object intercept(Object enhancedConfigInstance, Method beanMethod, Object[] beanMethodArgs,
 					MethodProxy cglibMethodProxy) throws Throwable {
-
+			// 通过enhancedConfigInstance代理对象 获取beanFactory\
 			ConfigurableBeanFactory beanFactory = getBeanFactory(enhancedConfigInstance);
+
 			String beanName = BeanAnnotationHelper.determineBeanNameFor(beanMethod);
 
 			// Determine whether this bean is a scoped-proxy
@@ -326,6 +342,7 @@ class ConfigurationClassEnhancer {
 					beanName = scopedBeanName;
 				}
 			}
+			// todo VIC  如果返回的是 factoryBean
 
 			// To handle the case of an inter-bean method reference, we must explicitly check the
 			// container for already cached instances.
@@ -334,8 +351,10 @@ class ConfigurationClassEnhancer {
 			// proxy that intercepts calls to getObject() and returns any cached bean instance.
 			// This ensures that the semantics of calling a FactoryBean from within @Bean methods
 			// is the same as that of referring to a FactoryBean within XML. See SPR-6602.
+			// todo  如果工厂包含 &beanName 并且 beanName 那么这就是一个 factoryBean
 			if (factoryContainsBean(beanFactory, BeanFactory.FACTORY_BEAN_PREFIX + beanName) &&
 					factoryContainsBean(beanFactory, beanName)) {
+				// todo  获取 factoryBean 自身
 				Object factoryBean = beanFactory.getBean(BeanFactory.FACTORY_BEAN_PREFIX + beanName);
 				if (factoryBean instanceof ScopedProxyFactoryBean) {
 					// Scoped proxy factory beans are a special case and should not be further proxied
@@ -360,6 +379,7 @@ class ConfigurationClassEnhancer {
 									"these container lifecycle issues; see @Bean javadoc for complete details.",
 							beanMethod.getDeclaringClass().getSimpleName(), beanMethod.getName()));
 				}
+				// VIC todo  调用父类方法
 				return cglibMethodProxy.invokeSuper(enhancedConfigInstance, beanMethodArgs);
 			}
 
@@ -479,6 +499,7 @@ class ConfigurationClassEnhancer {
 		}
 
 		/**
+		 * todo 增强 factoryBean
 		 * Create a subclass proxy that intercepts calls to getObject(), delegating to the current BeanFactory
 		 * instead of creating a new instance. These proxies are created only when calling a FactoryBean from
 		 * within a Bean method, allowing for proper scoping semantics even when working against the FactoryBean
@@ -493,6 +514,7 @@ class ConfigurationClassEnhancer {
 				boolean finalClass = Modifier.isFinal(clazz.getModifiers());
 				boolean finalMethod = Modifier.isFinal(clazz.getMethod("getObject").getModifiers());
 				if (finalClass || finalMethod) {
+					// todo 是接口的话 使用JDK 动态代理
 					if (exposedType.isInterface()) {
 						if (logger.isTraceEnabled()) {
 							logger.trace("Creating interface proxy for FactoryBean '" + beanName + "' of type [" +
@@ -517,7 +539,7 @@ class ConfigurationClassEnhancer {
 			catch (NoSuchMethodException ex) {
 				// No getObject() method -> shouldn't happen, but as long as nobody is trying to call it...
 			}
-
+			// todo 否则CglibProxy
 			return createCglibProxyForFactoryBean(factoryBean, beanFactory, beanName);
 		}
 

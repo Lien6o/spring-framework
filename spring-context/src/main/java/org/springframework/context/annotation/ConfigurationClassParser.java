@@ -300,7 +300,7 @@ class ConfigurationClassParser {
 				!this.conditionEvaluator.shouldSkip(sourceClass.getMetadata(), ConfigurationPhase.REGISTER_BEAN)) {
 			for (AnnotationAttributes componentScan : componentScans) {
 				// The config class is annotated with @ComponentScan -> perform the scan immediately
-				// todo VIC  扫描bd
+				// todo VIC  扫描bd 扫描普通类 并且放到Map当中
 				Set<BeanDefinitionHolder> scannedBeanDefinitions =
 						this.componentScanParser.parse(componentScan, sourceClass.getMetadata().getClassName());
 				// Check the set of scanned definitions for any further config classes and parse recursively if needed
@@ -319,6 +319,7 @@ class ConfigurationClassParser {
 
 		// Process any @Import annotations
 		// todo 处理配置类上的注解@Import
+		// todo getImports() 返回@Imoport注解上的类
 		processImports(configClass, sourceClass, getImports(sourceClass), true);
 
 		// Process any @ImportResource annotations
@@ -530,6 +531,7 @@ class ConfigurationClassParser {
 
 	/**
 	 * Returns {@code @Import} class, considering all meta-annotations.
+	 * 返回 Imports 注解的类
 	 */
 	private Set<SourceClass> getImports(SourceClass sourceClass) throws IOException {
 		Set<SourceClass> imports = new LinkedHashSet<>();
@@ -591,12 +593,16 @@ class ConfigurationClassParser {
 						// 实例化ImportSelector接口类
 						ImportSelector selector = ParserStrategyUtils.instantiateClass(candidateClass, ImportSelector.class,
 								this.environment, this.resourceLoader, this.registry);
+						// 延迟导入
 						if (selector instanceof DeferredImportSelector) {
 							this.deferredImportSelectorHandler.handle(configClass, (DeferredImportSelector) selector);
 						}
 						else {
+							// todo 调用了实现方法 ImportSelector.selectImports 回调
 							String[] importClassNames = selector.selectImports(currentSourceClass.getMetadata());
 							Collection<SourceClass> importSourceClasses = asSourceClasses(importClassNames);
+							// todo [VIC] 递归 导入类可能还有 @ImportSelector 注解
+							//  candidate 和他没关
 							processImports(configClass, currentSourceClass, importSourceClasses, false);
 						}
 					}
@@ -617,6 +623,7 @@ class ConfigurationClassParser {
 						// process it as an @Configuration class
 						this.importStack.registerImport(
 								currentSourceClass.getMetadata(), candidate.getMetadata().getClassName());
+						// 普通类到这里了
 						processConfigurationClass(candidate.asConfigClass(configClass));
 					}
 				}
@@ -944,6 +951,7 @@ class ConfigurationClassParser {
 		public SourceClass(Object source) {
 			this.source = source;
 			if (source instanceof Class) {
+				// 内省
 				this.metadata = AnnotationMetadata.introspect((Class<?>) source);
 			}
 			else {
