@@ -153,8 +153,8 @@ final class PostProcessorRegistrationDelegate {
 		// 返回与给定类型（包括子类）匹配的bean的名称
 		// 这里只能拿到spring内部的BeanDefinitionRegistryPostProcessor,
 		// 因为到这里spring还没有去扫描Bean,获取不到我们通过@Component标识的自定义BeanDefinitionRegistryPostProcessor
-		// 一般默认情况下,这里只有一个,BeanName:org.springframework.context.annotation.internalConfigurationAnnotationProcessor
-		// 对应的BeanClass:ConfigurationClassPostProcessor
+		// todo 一般默认情况下,这里只有一个,BeanName:org.springframework.context.annotation.internalConfigurationAnnotationProcessor
+		//  对应的BeanClass:ConfigurationClassPostProcessor
 		String[] postProcessorNames =
 				beanFactory.getBeanNamesForType(BeanFactoryPostProcessor.class, true, false);
 
@@ -165,6 +165,7 @@ final class PostProcessorRegistrationDelegate {
 		List<String> nonOrderedPostProcessorNames = new ArrayList<>();
 		for (String ppName : postProcessorNames) {
 			if (processedBeans.contains(ppName)) {
+				// 在上面的第一阶段处理 包含
 				// skip - already processed in first phase above
 			}
 			else if (beanFactory.isTypeMatch(ppName, PriorityOrdered.class)) {
@@ -203,7 +204,9 @@ final class PostProcessorRegistrationDelegate {
 	}
 
 	/**
-	 * 注册后置处理器
+	 * todo 注册后置处理器
+	 *  eg: AOP拦截器
+	 *
 	 * @param beanFactory
 	 * @param applicationContext
 	 * VIC:

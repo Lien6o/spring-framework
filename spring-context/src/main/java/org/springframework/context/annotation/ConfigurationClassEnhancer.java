@@ -75,6 +75,8 @@ class ConfigurationClassEnhancer {
 	// The callbacks to use. Note that these callbacks must be stateless.
 	// TODO
 	private static final Callback[] CALLBACKS = new Callback[] {
+			// 增强方法控制bean 的作用域
+			// 就是不让bean 不要每次都new
 			new BeanMethodInterceptor(),
 			new BeanFactoryAwareMethodInterceptor(),
 			NoOp.INSTANCE
@@ -83,7 +85,6 @@ class ConfigurationClassEnhancer {
 	private static final ConditionalCallbackFilter CALLBACK_FILTER = new ConditionalCallbackFilter(CALLBACKS);
 
 	private static final String BEAN_FACTORY_FIELD = "$$beanFactory";
-
 
 	private static final Log logger = LogFactory.getLog(ConfigurationClassEnhancer.class);
 
@@ -96,6 +97,7 @@ class ConfigurationClassEnhancer {
 	 * @return the enhanced subclass
 	 */
 	public Class<?> enhance(Class<?> configClass, @Nullable ClassLoader classLoader) {
+		// todo 是否被代理过 实现了一个接口做判断
 		if (EnhancedConfiguration.class.isAssignableFrom(configClass)) {
 			if (logger.isDebugEnabled()) {
 				logger.debug(String.format("Ignoring request to enhance %s as it has " +
@@ -107,7 +109,7 @@ class ConfigurationClassEnhancer {
 			}
 			return configClass;
 		}
-		// todo newEnhancer
+		// todo 没有被代理 newEnhancer
 		Class<?> enhancedClass = createClass(newEnhancer(configClass, classLoader));
 		if (logger.isTraceEnabled()) {
 			logger.trace(String.format("Successfully enhanced %s; enhanced class name is: %s",
@@ -312,6 +314,8 @@ class ConfigurationClassEnhancer {
 
 	/**
 	 * todo
+	 *  拦截目标方法 有限执行 intercept
+	 *  如果 MethodInterceptor==null 则执行原方法
 	 *
 	 * Intercepts the invocation of any {@link Bean}-annotated methods in order to ensure proper
 	 * handling of bean semantics such as scoping and AOP proxying.
@@ -330,7 +334,7 @@ class ConfigurationClassEnhancer {
 		@Nullable
 		public Object intercept(Object enhancedConfigInstance, Method beanMethod, Object[] beanMethodArgs,
 					MethodProxy cglibMethodProxy) throws Throwable {
-			// 通过enhancedConfigInstance代理对象 获取beanFactory\
+			// todo 通过enhancedConfigInstance代理对象 获取beanFactory
 			ConfigurableBeanFactory beanFactory = getBeanFactory(enhancedConfigInstance);
 
 			String beanName = BeanAnnotationHelper.determineBeanNameFor(beanMethod);
@@ -364,7 +368,10 @@ class ConfigurationClassEnhancer {
 					return enhanceFactoryBean(factoryBean, beanMethod.getReturnType(), beanFactory, beanName);
 				}
 			}
-
+			// 判断执行的方法和调用方法是不是同一个方法
+			// 判断是不是 第一次调用
+			// 也就是@Bean标注的方法是否是在调用中。如果是在调用中，则说明需要真正的实例化了，此时调用父类真是方法来创建实例。
+			// todo true 调用父类方法 即目标方法
 			if (isCurrentlyInvokedFactoryMethod(beanMethod)) {
 				// The factory is calling the bean method in order to instantiate and register the bean
 				// (i.e. via a getBean() call) -> invoke the super implementation of the method to actually
@@ -379,10 +386,10 @@ class ConfigurationClassEnhancer {
 									"these container lifecycle issues; see @Bean javadoc for complete details.",
 							beanMethod.getDeclaringClass().getSimpleName(), beanMethod.getName()));
 				}
-				// VIC todo  调用父类方法
+				// todo VIC 调用父类方法
 				return cglibMethodProxy.invokeSuper(enhancedConfigInstance, beanMethodArgs);
 			}
-
+			// todo false 使用代理方法
 			return resolveBeanReference(beanMethod, beanMethodArgs, beanFactory, beanName);
 		}
 
@@ -487,6 +494,9 @@ class ConfigurationClassEnhancer {
 		}
 
 		/**
+		 * todo 检查给定的方法是否对应于容器的当前调用的工厂方法。
+		 *  doCreateBean 时 创建实例 把方法存入 ThreadLocal currentlyInvokedFactoryMethod
+		 *
 		 * Check whether the given method corresponds to the container's currently invoked
 		 * factory method. Compares method name and parameter types only in order to work
 		 * around a potential problem with covariant return types (currently only known
@@ -494,8 +504,9 @@ class ConfigurationClassEnhancer {
 		 */
 		private boolean isCurrentlyInvokedFactoryMethod(Method method) {
 			Method currentlyInvoked = SimpleInstantiationStrategy.getCurrentlyInvokedFactoryMethod();
-			return (currentlyInvoked != null && method.getName().equals(currentlyInvoked.getName()) &&
-					Arrays.equals(method.getParameterTypes(), currentlyInvoked.getParameterTypes()));
+			return (currentlyInvoked != null
+					&& method.getName().equals(currentlyInvoked.getName())
+					&& Arrays.equals(method.getParameterTypes(), currentlyInvoked.getParameterTypes()));
 		}
 
 		/**
