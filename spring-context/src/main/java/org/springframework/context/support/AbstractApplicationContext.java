@@ -529,9 +529,9 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 				// Allows post-processing of the bean factory in context subclasses.
 				// 没啥用 以后更新使用
 				postProcessBeanFactory(beanFactory);
-				// BeanFactoryPostProcessor 这里是调用执行 是对BeanDefinition对象进行修改。
 				// todo VIC 从名字上看, 它是BeanFactory的后处理类
-				// Invoke factory processors registered as beans in the context.
+				//  BeanFactoryPostProcessor 这里是调用执行 是对BeanDefinition对象进行修改。
+				//  Invoke factory processors registered as beans in the context.
 				invokeBeanFactoryPostProcessors(beanFactory);
 
 				// todo 后置处理器
@@ -540,20 +540,25 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 				// Register bean processors that intercept bean creation.
 				registerBeanPostProcessors(beanFactory);
 
+				// 国际化
 				// Initialize message source for this context.
 				initMessageSource();
+
 
 				// Initialize event multicaster for this context.
 				initApplicationEventMulticaster();
 
 				// Initialize other special beans in specific context subclasses.
+				// 空
 				onRefresh();
 
 				// Check for listener beans and register them.
 				registerListeners();
 
 				// Instantiate all remaining (non-lazy-init) singletons.
+				// todo 实例化
 				finishBeanFactoryInitialization(beanFactory);
+
 				// todo 发布 事件
 				// Last step: publish corresponding event.
 				finishRefresh();
@@ -857,6 +862,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 */
 	protected void finishBeanFactoryInitialization(ConfigurableListableBeanFactory beanFactory) {
 		// Initialize conversion service for this context.
+		// todo 字符串转类型
 		if (beanFactory.containsBean(CONVERSION_SERVICE_BEAN_NAME) &&
 				beanFactory.isTypeMatch(CONVERSION_SERVICE_BEAN_NAME, ConversionService.class)) {
 			beanFactory.setConversionService(
@@ -871,6 +877,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		}
 
 		// Initialize LoadTimeWeaverAware beans early to allow for registering their transformers early.
+		// todo Spring 动态植入  AspectJ 在编译过程植入
 		String[] weaverAwareNames = beanFactory.getBeanNamesForType(LoadTimeWeaverAware.class, false, false);
 		for (String weaverAwareName : weaverAwareNames) {
 			getBean(weaverAwareName);
