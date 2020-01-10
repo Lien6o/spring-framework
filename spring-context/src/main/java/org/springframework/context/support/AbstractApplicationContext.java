@@ -534,7 +534,9 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 				// Invoke factory processors registered as beans in the context.
 				invokeBeanFactoryPostProcessors(beanFactory);
 
-				// 这里仅仅是注册不执行 beanFactory.addBeanPostProcessor(postProcessor)
+				// todo 后置处理器
+				//  这里仅仅是注册不执行 beanFactory.addBeanPostProcessor(postProcessor)
+				//  实例化的过程执行
 				// Register bean processors that intercept bean creation.
 				registerBeanPostProcessors(beanFactory);
 
@@ -552,7 +554,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 
 				// Instantiate all remaining (non-lazy-init) singletons.
 				finishBeanFactoryInitialization(beanFactory);
-
+				// todo 发布 事件
 				// Last step: publish corresponding event.
 				finishRefresh();
 			}

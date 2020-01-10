@@ -1,5 +1,6 @@
 package org.springframework.lienbo;
 
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
 /**
@@ -9,5 +10,8 @@ import org.springframework.context.annotation.Configuration;
  * @version: v1.0
  */
 @Configuration
+@ComponentScan("org.springframework.lienbo")
 public class AppConfig {
+
+
 }

@@ -265,6 +265,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 		}
 		// todo 增强类CGLIB
 		enhanceConfigurationClasses(beanFactory);
+		// todo
 		beanFactory.addBeanPostProcessor(new ImportAwareBeanPostProcessor(beanFactory));
 	}
 
@@ -478,6 +479,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 
 		@Override
 		public Object postProcessBeforeInitialization(Object bean, String beanName) {
+			// todo aware 激活接口
 			if (bean instanceof ImportAware) {
 				ImportRegistry ir = this.beanFactory.getBean(IMPORT_REGISTRY_BEAN_NAME, ImportRegistry.class);
 				AnnotationMetadata importingClass = ir.getImportingClassFor(ClassUtils.getUserClass(bean).getName());

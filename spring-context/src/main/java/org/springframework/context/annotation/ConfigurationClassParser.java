@@ -320,11 +320,11 @@ class ConfigurationClassParser {
 		// Process any @Import annotations
 		// todo 处理配置类上的注解@Import
 		// todo getImports() 返回@Imoport注解上的类
+		// todo @Enable**** 就是用的这个功能实现的选择引入配置
 		processImports(configClass, sourceClass, getImports(sourceClass), true);
 
 		// Process any @ImportResource annotations
 		// todo 处理配置类上的注解@ImportResource
-		// todo @Enable**** 就是用的这个功能实现的选择引入配置
 		AnnotationAttributes importResource =
 				AnnotationConfigUtils.attributesFor(sourceClass.getMetadata(), ImportResource.class);
 		if (importResource != null) {
@@ -598,7 +598,8 @@ class ConfigurationClassParser {
 							this.deferredImportSelectorHandler.handle(configClass, (DeferredImportSelector) selector);
 						}
 						else {
-							// todo 调用了实现方法 ImportSelector.selectImports 回调
+							// todo 调用了实现方法 ImportSelector.selectImports 回调 类的全限定名称 变成BD 动态添加BD
+							// 这个BD不能修改属性 Spring 帮用户注册
 							String[] importClassNames = selector.selectImports(currentSourceClass.getMetadata());
 							Collection<SourceClass> importSourceClasses = asSourceClasses(importClassNames);
 							// todo [VIC] 递归 导入类可能还有 @ImportSelector 注解
@@ -606,7 +607,7 @@ class ConfigurationClassParser {
 							processImports(configClass, currentSourceClass, importSourceClasses, false);
 						}
 					}
-					// todo 这里是处理 ImportBeanDefinitionRegistrar 的地方
+					// todo 这里是处理 ImportBeanDefinitionRegistrar 的地方 有个 Registrar 可以自己注册
 					else if (candidate.isAssignable(ImportBeanDefinitionRegistrar.class)) {
 						// Candidate class is an ImportBeanDefinitionRegistrar ->
 						// delegate to it to register additional bean definitions 委托它注册其他 bd

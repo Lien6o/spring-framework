@@ -1,6 +1,5 @@
 package org.springframework.lienbo;
 
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 /**
@@ -10,10 +9,13 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
  * @version: v1.0
  */
 public class ReadSourceCode {
+
 	public static void main(String[] args) {
+
 		AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(AppConfig.class);
 
-		Object appConfig = context.getBean("appConfig");
-		System.err.println(appConfig.toString());
+		Tryrrr tryrrr = (Tryrrr) context.getBean("tryrrr");
+		System.err.println(tryrrr.toString());
+		tryrrr.print();
 	}
 }
