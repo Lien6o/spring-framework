@@ -248,6 +248,9 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 		// todo 检查单例缓存是否有手动注册的单例
 		//   初始化时为什么要从cache获取？？？？
 		//
+		//
+		//
+		//
 		// Eagerly check singleton cache for manually registered singletons.
 		Object sharedInstance = getSingleton(beanName);
 		// todo 命中缓存
@@ -263,7 +266,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 			}
 			bean = getObjectForBeanInstance(sharedInstance, name, beanName, null);
 		}
-
+		// 第一次一定不会命中
 		else {
 			// Fail if we're already creating this bean instance:
 			// We're assumably within a circular reference.
@@ -294,6 +297,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 			}
 
 			if (!typeCheckOnly) {
+				// 将Bean标记为已创建
 				markBeanAsCreated(beanName);
 			}
 
@@ -303,6 +307,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 				checkMergedBeanDefinition(mbd, beanName, args);
 
 				// Guarantee initialization of beans that the current bean depends on.
+				// todo 确保当前bean依赖的bean的初始化。 先实例化依赖
 				String[] dependsOn = mbd.getDependsOn();
 				if (dependsOn != null) {
 					for (String dep : dependsOn) {
@@ -325,7 +330,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 				if (mbd.isSingleton()) {
 					sharedInstance = getSingleton(beanName, () -> {
 						try {
-							// todo
+							// todo core
 							return createBean(beanName, mbd, args);
 						}
 						catch (BeansException ex) {

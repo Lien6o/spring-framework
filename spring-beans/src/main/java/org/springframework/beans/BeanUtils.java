@@ -183,6 +183,7 @@ public abstract class BeanUtils {
 		try {
 			ReflectionUtils.makeAccessible(ctor);
 			if (KotlinDetector.isKotlinReflectPresent() && KotlinDetector.isKotlinType(ctor.getDeclaringClass())) {
+				// 反射实例化
 				return KotlinDelegate.instantiateClass(ctor, args);
 			}
 			else {
