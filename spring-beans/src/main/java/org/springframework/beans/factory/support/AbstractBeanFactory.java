@@ -241,11 +241,13 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	@SuppressWarnings("unchecked")
 	protected <T> T doGetBean(final String name, @Nullable final Class<T> requiredType,
 			@Nullable final Object[] args, boolean typeCheckOnly) throws BeansException {
-		// 转换下bean 的名字
+		// todo 转换下bean 的名字
 		final String beanName = transformedBeanName(name);
 		Object bean;
 
 		// todo 检查单例缓存是否有手动注册的单例
+		//   初始化时为什么要从cache获取？？？？
+		//
 		// Eagerly check singleton cache for manually registered singletons.
 		Object sharedInstance = getSingleton(beanName);
 		// todo 命中缓存
@@ -323,6 +325,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 				if (mbd.isSingleton()) {
 					sharedInstance = getSingleton(beanName, () -> {
 						try {
+							// todo
 							return createBean(beanName, mbd, args);
 						}
 						catch (BeansException ex) {
@@ -1890,7 +1893,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	/**
 	 * Check if this bean factory contains a bean definition with the given name.
 	 * Does not consider any hierarchy this factory may participate in.
-	 * Invoked by {@code containsBean} when no cached singleton instance is found.
+	 * Invoke  d by {@code containsBean} when no cached singleton instance is found.
 	 * <p>Depending on the nature of the concrete bean factory implementation,
 	 * this operation might be expensive (for example, because of directory lookups
 	 * in external registries). However, for listable bean factories, this usually
