@@ -138,6 +138,7 @@ public class DefaultLifecycleProcessor implements LifecycleProcessor, BeanFactor
 	// Internal helpers
 
 	private void startBeans(boolean autoStartupOnly) {
+		// 取得所有Lifecycle接口的实例，此map的key是实例的名称，value是实例
 		Map<String, Lifecycle> lifecycleBeans = getLifecycleBeans();
 		Map<Integer, LifecycleGroup> phases = new HashMap<>();
 		lifecycleBeans.forEach((beanName, bean) -> {
@@ -146,15 +147,19 @@ public class DefaultLifecycleProcessor implements LifecycleProcessor, BeanFactor
 				LifecycleGroup group = phases.get(phase);
 				if (group == null) {
 					group = new LifecycleGroup(phase, this.timeoutPerShutdownPhase, lifecycleBeans, autoStartupOnly);
+					// key是Lifecycle实例的phase阶段值，value是Lifecycle实例
 					phases.put(phase, group);
 				}
+				// 当前实例加入LifecycleGroup中，该LifecycleGroup内的所有实例的phase都相等
 				group.add(beanName, bean);
 			}
 		});
 		if (!phases.isEmpty()) {
 			List<Integer> keys = new ArrayList<>(phases.keySet());
+			// 按照所有的phase值排序，然后依次执行bean的start方法，每次都是一批phase相同的
 			Collections.sort(keys);
 			for (Integer key : keys) {
+				// todo 这里面会对所有Lifecycle实例逐个调用start方法
 				phases.get(key).start();
 			}
 		}
@@ -171,14 +176,19 @@ public class DefaultLifecycleProcessor implements LifecycleProcessor, BeanFactor
 		if (bean != null && bean != this) {
 			String[] dependenciesForBean = getBeanFactory().getDependenciesForBean(beanName);
 			for (String dependency : dependenciesForBean) {
+				// todo 如果有依赖类，就先调用依赖类的start方法，这里做了迭代调用
 				doStart(lifecycleBeans, dependency, autoStartupOnly);
 			}
+			// 条件略多，首先要求isRunning返回false，其次：
+			// 不能是SmartLifecycle的实现类，
+			// 若是SmartLifecycle实现类，其isAutoStartup方法必须返回true
 			if (!bean.isRunning() &&
 					(!autoStartupOnly || !(bean instanceof SmartLifecycle) || ((SmartLifecycle) bean).isAutoStartup())) {
 				if (logger.isTraceEnabled()) {
 					logger.trace("Starting bean '" + beanName + "' of type [" + bean.getClass().getName() + "]");
 				}
 				try {
+					// 调用start方法
 					bean.start();
 				}
 				catch (Throwable ex) {
@@ -357,6 +367,7 @@ public class DefaultLifecycleProcessor implements LifecycleProcessor, BeanFactor
 			}
 			Collections.sort(this.members);
 			for (LifecycleGroupMember member : this.members) {
+				// todo vic core
 				doStart(this.lifecycleBeans, member.name, this.autoStartupOnly);
 			}
 		}

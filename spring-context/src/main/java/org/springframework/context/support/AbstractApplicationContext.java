@@ -400,6 +400,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 			this.earlyApplicationEvents.add(applicationEvent);
 		}
 		else {
+			// 发布事件
 			getApplicationEventMulticaster().multicastEvent(applicationEvent, eventType);
 		}
 
@@ -559,7 +560,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 				// todo 实例化
 				finishBeanFactoryInitialization(beanFactory);
 
-				// todo 发布 事件
+				// todo 在bean的实例化和初始化操作完毕后
 				// Last step: publish corresponding event.
 				finishRefresh();
 			}
@@ -793,6 +794,12 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	}
 
 	/**
+	 * todo
+	 * initLifecycleProcessor方法的作用是为applicationContext的成员变量lifecycleProcessor赋值，
+	 * 如果已有名为”lifecycleProcessor”的bean，lifecycleProcessor就等于这个bean，
+	 * 否则就实例化一个DefaultLifecycleProcessor对象，再让lifecycleProcessor等于这个对象，
+	 * 并且把这个对象作注册到spring环境中（名为”lifecycleProcessor”）
+	 *
 	 * Initialize the LifecycleProcessor.
 	 * Uses DefaultLifecycleProcessor if none defined in the context.
 	 * @see org.springframework.context.support.DefaultLifecycleProcessor
@@ -800,6 +807,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	protected void initLifecycleProcessor() {
 		ConfigurableListableBeanFactory beanFactory = getBeanFactory();
 		if (beanFactory.containsLocalBean(LIFECYCLE_PROCESSOR_BEAN_NAME)) {
+			// todo applicationContext的成员变量lifecycleProcessor赋值
 			this.lifecycleProcessor =
 					beanFactory.getBean(LIFECYCLE_PROCESSOR_BEAN_NAME, LifecycleProcessor.class);
 			if (logger.isTraceEnabled()) {
@@ -807,6 +815,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 			}
 		}
 		else {
+			// todo 实例化一个DefaultLifecycleProcessor对象，再让lifecycleProcessor等于这个对象
 			DefaultLifecycleProcessor defaultProcessor = new DefaultLifecycleProcessor();
 			defaultProcessor.setBeanFactory(beanFactory);
 			this.lifecycleProcessor = defaultProcessor;
@@ -903,13 +912,22 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		// Clear context-level resource caches (such as ASM metadata from scanning).
 		clearResourceCaches();
 
-		// Initialize lifecycle processor for this context.
+		// todo LifecycleProcessor实例初始化，
+		//  LifecycleProcessor是所有Lifecycle实现类的管家，里面包含了对Lifecycle的各种操作.
+		//  Initialize lifecycle processor for this context.
+		//  initLifecycleProcessor方法的作用是为applicationContext的成员变量 lifecycleProcessor 赋值，
+		//  如果已有名为”lifecycleProcessor”的bean，lifecycleProcessor就等于这个bean，
+		//  否则就实例化一个DefaultLifecycleProcessor对象，再让lifecycleProcessor等于这个对象，
+		//  并且把这个对象作注册到spring环境中（名为”lifecycleProcessor”）
 		initLifecycleProcessor();
 
 		// Propagate refresh to lifecycle processor first.
+		// todo 通过LifecycleProcessor来执行Lifecycle实现类的start方法
+		//  调用LifecycleProcessor的onRefresh方法
 		getLifecycleProcessor().onRefresh();
 
 		// Publish the final event.
+		// 向监听器发送广播，消息类型是ContextRefreshedEvent
 		publishEvent(new ContextRefreshedEvent(this));
 
 		// Participate in LiveBeansView MBean, if active.

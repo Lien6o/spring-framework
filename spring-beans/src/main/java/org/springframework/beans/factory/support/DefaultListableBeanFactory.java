@@ -887,8 +887,17 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 		}
 
 		// Trigger post-initialization callback for all applicable beans...
+		// 触发所有适用bean的初始化后回调...
 		for (String beanName : beanNames) {
 			Object singletonInstance = getSingleton(beanName);
+			// todo 在BeanFactory引导期间的单例预实例化阶段结束时触发的回调接口。
+			//  此接口可以由单例bean实现，以便在常规的单例实例化算法之后执行一些初始化，
+			//  从而避免了意外的早期初始化带来的副作用（例如，来自ListableBeanFactory＃getBeansOfType调用）。
+			//  从这个意义上讲，它是InitializingBean的替代方法，后者在bean的本地构造阶段结束时立即触发。
+			//  这个回调变体有点类似于org.springframework.context.event.ContextRefreshedEvent，
+			//  但是不需要org.springframework.context.ApplicationListener的实现，不需要在整个上下文层次结构中过滤上下文引用。
+			//  这也意味着更多对bean包的依赖性最小，并且由独立的ListableBeanFactory实现兑现，
+			//  而不仅仅是在org.springframework.context.ApplicationContext环境中。
 			if (singletonInstance instanceof SmartInitializingSingleton) {
 				final SmartInitializingSingleton smartSingleton = (SmartInitializingSingleton) singletonInstance;
 				if (System.getSecurityManager() != null) {

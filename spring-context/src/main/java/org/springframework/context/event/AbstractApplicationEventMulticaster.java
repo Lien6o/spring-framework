@@ -272,7 +272,7 @@ public abstract class AbstractApplicationEventMulticaster
 				}
 			}
 		}
-
+		// TODO 排序
 		AnnotationAwareOrderComparator.sort(allListeners);
 		if (retriever != null && retriever.applicationListenerBeans.isEmpty()) {
 			retriever.applicationListeners.clear();
