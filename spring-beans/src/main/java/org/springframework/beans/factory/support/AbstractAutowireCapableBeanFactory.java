@@ -1823,7 +1823,18 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		}
 
 		try {
-			// TODO 执行bean的生命周期回调中的init方法
+			// TODO 执行bean的生命周期回调中的init方法 InitializingBean接口 的afterPropertiesSet方法 回调接口
+			//  1：spring为bean提供了两种初始化bean的方式，实现InitializingBean接口，实现afterPropertiesSet方法，或者在配置文件中同过init-method指定，两种方式可以同时使用
+			//  2：实现InitializingBean接口是直接调用afterPropertiesSet方法，比通过反射调用init-method指定的方法效率相对来说要高点。但是init-method方式消除了对spring的依赖
+			//  3：如果调用afterPropertiesSet方法时出错，则不调用init-method指定的方法。
+			//  通过 debug 和调用栈找到类InitDestroyAnnotationBeanPostProcessor, 其中的核心方法，
+			//  即 @PostConstruct 方法调用的入口：从命名上，我们就可以得到某些信息——这是一个BeanPostProcessor。想到了什么？在也谈Spring容器的生命周期中，
+			//  提到过BeanPostProcessor的postProcessBeforeInitialization是在Bean生命周期中afterPropertiesSet和init-method之前被调用的。
+			//  另外通过跟踪，@PostConstruct 方法的调用方式也是通过发射机制。
+			//  总结：
+			//  1、spring bean的初始化执行顺序：
+			//  构造方法 --> @PostConstruct注解的方法 --> afterPropertiesSet方法 --> init-method指定的方法。
+			//  2、afterPropertiesSet通过接口实现方式调用（效率上高一点），@PostConstruct和init-method都是通过反射机制调用
 			invokeInitMethods(beanName, wrappedBean, mbd);
 		}
 		catch (Throwable ex) {
@@ -1858,6 +1869,8 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	}
 
 	/**
+	 * 现在，给一个beam一个机会来作出反应，它的所有属性都已设置，并有一个机会了解它拥有的bean factory（此对象）。
+	 *  这意味着检查bean是否实现了InitializingBean或定义了一个自定义的init方法，如果有，则调用必要的回调。
 	 * Give a bean a chance to react now all its properties are set,
 	 * and a chance to know about its owning bean factory (this object).
 	 * This means checking whether the bean implements InitializingBean or defines
@@ -1889,15 +1902,18 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 				}
 			}
 			else {
+
 				((InitializingBean) bean).afterPropertiesSet();
 			}
 		}
-
+		// todo 判断是否指定了init-method方法，如果指定了init-method方法，则再调用制定的init-method
 		if (mbd != null && bean.getClass() != NullBean.class) {
+			// todo 获取初始化方法名称
 			String initMethodName = mbd.getInitMethodName();
-			if (StringUtils.hasLength(initMethodName) &&
-					!(isInitializingBean && "afterPropertiesSet".equals(initMethodName)) &&
-					!mbd.isExternallyManagedInitMethod(initMethodName)) {
+			if (StringUtils.hasLength(initMethodName)
+					&& !(isInitializingBean && "afterPropertiesSet".equals(initMethodName))
+					&& !mbd.isExternallyManagedInitMethod(initMethodName)) {
+				// todo 反射调用init-method方法
 				invokeCustomInitMethod(beanName, bean, mbd);
 			}
 		}

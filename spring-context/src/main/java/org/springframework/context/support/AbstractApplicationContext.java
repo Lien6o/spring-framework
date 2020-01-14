@@ -560,7 +560,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 				// todo 实例化
 				finishBeanFactoryInitialization(beanFactory);
 
-				// todo 在bean的实例化和初始化操作完毕后
+				// todo 在bean的实例化和初始化操作完毕后 发布相应的事件
 				// Last step: publish corresponding event.
 				finishRefresh();
 			}
@@ -899,7 +899,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		beanFactory.freezeConfiguration();
 
 		// Instantiate all remaining (non-lazy-init) singletons.
-		// 实例化
+		// todo 实例化
 		beanFactory.preInstantiateSingletons();
 	}
 
