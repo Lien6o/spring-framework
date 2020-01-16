@@ -517,6 +517,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	public void refresh() throws BeansException, IllegalStateException {
 		synchronized (this.startupShutdownMonitor) {
 			// Prepare this context for refreshing.
+			// todo 环境变量
 			prepareRefresh();
 
 			// Tell the subclass to refresh the internal bean factory.
@@ -613,6 +614,14 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 
 		// Validate that all properties marked as required are resolvable:
 		// see ConfigurablePropertyResolver#setRequiredProperties
+		// todo new StandardEnvironment();
+		//	 看了AbstractPropertyResolver类的validateRequiredProperties方法源码后，
+		//   可以确定该方法能强制要求一些环境变量必须存在，否则停止spring启动，
+		//   我们只要把我们认为必要的环境变量的key存入集合requiredProperties中即可，达到此目标需要解决下面两个问题：
+		//   1. 如何将环境变量的key存入集合requiredProperties？
+		//   调用AbstractPropertyResolver类的setRequiredProperties方法，注意该方法是向集合requiredProperties中添加数据，并不会将已有数据清除；
+		//   2. 在什么时候执行AbstractPropertyResolver类的setRequiredProperties方法设置key？
+		//   创建一个AbstractApplicationContext的子类，重写initPropertySources方法，在此方法中执行AbstractPropertyResolver类的setRequiredProperties；
 		getEnvironment().validateRequiredProperties();
 
 		// Store pre-refresh ApplicationListeners...

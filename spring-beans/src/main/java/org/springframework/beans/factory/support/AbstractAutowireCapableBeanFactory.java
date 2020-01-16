@@ -560,7 +560,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			instanceWrapper = this.factoryBeanInstanceCache.remove(beanName);
 		}
 		if (instanceWrapper == null) {
-			// todo
+			// todo 包装bean 有很多后续操作：设置bd 的一些属性
 			instanceWrapper = createBeanInstance(beanName, mbd, args);
 		}
 		// todo bean 是原生对象
@@ -602,7 +602,9 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		try {
 			// todo 自动装配 组装Bean
 			populateBean(beanName, mbd, instanceWrapper);
-			// todo AOP 关键性的一步 执行 BeanPostProcess
+			// todo
+			// todo
+			//  AOP 关键性的一步 执行 [初始化方法的执行] [BeanPostProcess方法的执行]
 			exposedObject = initializeBean(beanName, exposedObject, mbd);
 		}
 		catch (Throwable ex) {
@@ -1180,6 +1182,12 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		}
 
 		Supplier<?> instanceSupplier = mbd.getInstanceSupplier();
+		// todo spring 5 把一个对象注册为bd
+		//  这样的好处：
+		//  1、注册后还可以执行 getBean等回调接口 若 使用beanFactory设置 再调用getBean会走缓存。
+		//  2、比直接new bd, new FactoryBean 方便。
+		//  3、只有5.0才有这个方法。fuck!!!
+		//  org.springframework.context.support.GenericApplicationContext.registerBean(java.lang.String, java.lang.Class<T>, java.util.function.Supplier<T>, org.springframework.beans.factory.config.BeanDefinitionCustomizer...)
 		if (instanceSupplier != null) {
 			return obtainFromSupplier(instanceSupplier, beanName);
 		}
@@ -1823,7 +1831,8 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		}
 
 		try {
-			// TODO 执行bean的生命周期回调中的init方法 InitializingBean接口 的afterPropertiesSet方法 回调接口
+			// TODO [初始化] 搜索使用
+			//  执行bean的生命周期回调中的init方法 InitializingBean接口 的afterPropertiesSet方法 回调接口
 			//  1：spring为bean提供了两种初始化bean的方式，实现InitializingBean接口，实现afterPropertiesSet方法，或者在配置文件中同过init-method指定，两种方式可以同时使用
 			//  2：实现InitializingBean接口是直接调用afterPropertiesSet方法，比通过反射调用init-method指定的方法效率相对来说要高点。但是init-method方式消除了对spring的依赖
 			//  3：如果调用afterPropertiesSet方法时出错，则不调用init-method指定的方法。
@@ -1834,7 +1843,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			//  总结：
 			//  1、spring bean的初始化执行顺序：
 			//  构造方法 --> @PostConstruct注解的方法 --> afterPropertiesSet方法 --> init-method指定的方法。
-			//  2、afterPropertiesSet通过接口实现方式调用（效率上高一点），@PostConstruct和init-method都是通过反射机制调用
+			//  2、[afterPropertiesSet] 通过接口实现方式调用（效率上高一点），@PostConstruct和init-method都是通过反射机制调用
 			invokeInitMethods(beanName, wrappedBean, mbd);
 		}
 		catch (Throwable ex) {
@@ -1892,6 +1901,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			}
 			if (System.getSecurityManager() != null) {
 				try {
+					// todo afterPropertiesSet 执行
 					AccessController.doPrivileged((PrivilegedExceptionAction<Object>) () -> {
 						((InitializingBean) bean).afterPropertiesSet();
 						return null;
