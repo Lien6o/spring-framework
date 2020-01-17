@@ -109,9 +109,13 @@ class ConstructorResolver {
 
 
 	/**
+	 * todo 按类型的构造函数参数
+	 *  如果指定了显式构造函数参数值，则也适用
+	 *  这对应于构造函数注入：在这种模式下，Spring bean工厂能够托管期望基于构造函数依赖关系解析的组件。
 	 * "autowire constructor" (with constructor arguments by type) behavior.
 	 * Also applied if explicit constructor argument values are specified,
 	 * matching all remaining arguments with beans from the bean factory.
+	 *
 	 * <p>This corresponds to constructor injection: In this mode, a Spring
 	 * bean factory is able to host components that expect constructor-based
 	 * dependency resolution.
@@ -127,9 +131,11 @@ class ConstructorResolver {
 
 		BeanWrapperImpl bw = new BeanWrapperImpl();
 		this.beanFactory.initBeanWrapper(bw);
-
+		// 使用的构造方法
 		Constructor<?> constructorToUse = null;
+		// 参数
 		ArgumentsHolder argsHolderToUse = null;
+		// 给定的构造器参数
 		Object[] argsToUse = null;
 
 		if (explicitArgs != null) {
@@ -138,6 +144,7 @@ class ConstructorResolver {
 		else {
 			Object[] argsToResolve = null;
 			synchronized (mbd.constructorArgumentLock) {
+				// 是否存在指定的构造方法
 				constructorToUse = (Constructor<?>) mbd.resolvedConstructorOrFactoryMethod;
 				if (constructorToUse != null && mbd.constructorArgumentsResolved) {
 					// Found a cached constructor...
@@ -204,12 +211,15 @@ class ConstructorResolver {
 			for (Constructor<?> candidate : candidates) {
 
 				int parameterCount = candidate.getParameterCount();
-
+				//
 				if (constructorToUse != null && argsToUse != null && argsToUse.length > parameterCount) {
 					// Already found greedy constructor that can be satisfied ->
+					// 已经找到可以满足的贪婪构造函数
 					// do not look any further, there are only less greedy constructors left.
+					// 不要再看了，只剩下更少的贪婪构造函数了。
 					break;
 				}
+				// 构造函数参数列表参数数量
 				if (parameterCount < minNrOfArgs) {
 					continue;
 				}
@@ -485,11 +495,12 @@ class ConstructorResolver {
 					return bw;
 				}
 			}
-
+			// 排序
 			candidates.sort(AutowireUtils.EXECUTABLE_COMPARATOR);
 
 			ConstructorArgumentValues resolvedValues = null;
 			boolean autowiring = (mbd.getResolvedAutowireMode() == AutowireCapableBeanFactory.AUTOWIRE_CONSTRUCTOR);
+			// 差异变量
 			int minTypeDiffWeight = Integer.MAX_VALUE;
 			Set<Method> ambiguousFactoryMethods = null;
 
@@ -503,6 +514,7 @@ class ConstructorResolver {
 				if (mbd.hasConstructorArgumentValues()) {
 					ConstructorArgumentValues cargs = mbd.getConstructorArgumentValues();
 					resolvedValues = new ConstructorArgumentValues();
+					// 参数数量
 					minNrOfArgs = resolveConstructorArguments(beanName, mbd, bw, cargs, resolvedValues);
 				}
 				else {
@@ -511,7 +523,7 @@ class ConstructorResolver {
 			}
 
 			LinkedList<UnsatisfiedDependencyException> causes = null;
-
+			// 遍历候选的 构造方法
 			for (Method candidate : candidates) {
 
 				int parameterCount = candidate.getParameterCount();

@@ -266,10 +266,11 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 			}
 			bean = getObjectForBeanInstance(sharedInstance, name, beanName, null);
 		}
-		// 第一次一定不会命中
+		// TODO 第一次一定不会命中
 		else {
 			// Fail if we're already creating this bean instance:
 			// We're assumably within a circular reference.
+			// todo 原型
 			if (isPrototypeCurrentlyInCreation(beanName)) {
 				throw new BeanCurrentlyInCreationException(beanName);
 			}
