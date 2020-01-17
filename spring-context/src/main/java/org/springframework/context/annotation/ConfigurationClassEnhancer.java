@@ -126,14 +126,14 @@ class ConfigurationClassEnhancer {
 		// 继承父类
 		enhancer.setSuperclass(configSuperClass);
 		// todo setBeanFactory 为了让其获取 beanFactory
-		//  为了解决 自我调用问题。以后都是从容器获取这个代理类 BeanFactoryAware 实例化
+		//  为了解决 CGLIB 自我调用问题。以后都是从容器获取这个代理类 BeanFactoryAware 实例化
 		enhancer.setInterfaces(new Class<?>[] {EnhancedConfiguration.class});
 		enhancer.setUseFactory(false);
 		enhancer.setNamingPolicy(SpringNamingPolicy.INSTANCE);
 		// todo 生成策略 添加成员变量 基于 BeanFactoryAware 设置 beanFactory
 		enhancer.setStrategy(new BeanFactoryAwareGeneratorStrategy(classLoader));
-		// 设置回调过滤器  为了解决 自我调用问题。
-		// todo VIC MethodInterceptor
+		// todo 设置回调过滤器  CGLIB 为了解决 自我调用问题。
+		//  VIC MethodInterceptor
 		enhancer.setCallbackFilter(CALLBACK_FILTER);
 		enhancer.setCallbackTypes(CALLBACK_FILTER.getCallbackTypes());
 		return enhancer;
