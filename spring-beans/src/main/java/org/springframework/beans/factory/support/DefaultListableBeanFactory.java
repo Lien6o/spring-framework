@@ -887,7 +887,8 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 		}
 
 		// Trigger post-initialization callback for all applicable beans...
-		// 触发所有适用bean的初始化后回调...
+		// todo [SmartInitializingSingleton]
+		//  触发所有适用bean的初始化后回调...
 		for (String beanName : beanNames) {
 			Object singletonInstance = getSingleton(beanName);
 			// todo 在BeanFactory引导期间的单例预实例化阶段结束时触发的回调接口。
@@ -899,6 +900,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 			//  这也意味着更多对bean包的依赖性最小，并且由独立的ListableBeanFactory实现兑现，
 			//  而不仅仅是在org.springframework.context.ApplicationContext环境中。
 			if (singletonInstance instanceof SmartInitializingSingleton) {
+				// todo SmartInitializingSingleton 接口回调
 				final SmartInitializingSingleton smartSingleton = (SmartInitializingSingleton) singletonInstance;
 				if (System.getSecurityManager() != null) {
 					AccessController.doPrivileged((PrivilegedAction<Object>) () -> {
@@ -1299,6 +1301,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 				autowiredBeanNames.add(autowiredBeanName);
 			}
 			if (instanceCandidate instanceof Class) {
+				// todo 寻找依赖 [循环依赖] getBean不存在
 				instanceCandidate = descriptor.resolveCandidate(autowiredBeanName, type, this);
 			}
 			Object result = instanceCandidate;

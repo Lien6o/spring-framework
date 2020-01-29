@@ -249,7 +249,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 		//   初始化时为什么要从cache获取？？？？
 		//
 		//
-		//
+		// 循环依赖回 调用
 		//
 		// Eagerly check singleton cache for manually registered singletons.
 		Object sharedInstance = getSingleton(beanName);
