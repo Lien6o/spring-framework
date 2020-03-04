@@ -12,13 +12,13 @@ import java.util.Map;
  * @version: v1.0
  */
 @Component
-public class Tryrrr {
+public class TryAutowiredMap {
 
 	// todo 神乎其技的操作 ，注入 Map 就可以回去该接口下的所有实现类。。。。。
 	@Autowired
 	private Map<String, IndexDao> map;
 
 	public void print() {
-		System.out.println(map.toString());
+		System.err.println(map.toString());
 	}
 }

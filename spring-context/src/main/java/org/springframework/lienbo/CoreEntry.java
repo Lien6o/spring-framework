@@ -14,8 +14,9 @@ public class CoreEntry {
 
 		AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(AppConfig.class);
 
-		Tryrrr tryrrr = (Tryrrr) context.getBean("tryrrr");
-		System.err.println(tryrrr.toString());
-		tryrrr.print();
+		TryAutowiredMap map = (TryAutowiredMap) context.getBean("tryAutowiredMap");
+		System.err.println(map.toString());
+		Thread.interrupted();
+		map.print();
 	}
 }
