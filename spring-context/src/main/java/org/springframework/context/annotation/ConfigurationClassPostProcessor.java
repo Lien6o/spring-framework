@@ -245,7 +245,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 
 	/**
 	 *
-	 * todo VIC 通过将配置类替换为CGLIB增强的子类，准备用于在运行时为Bean请求提供服务的Configuration类。
+	 * TODO [VIC] 通过将配置类替换为CGLIB增强的子类，准备用于在运行时为Bean请求提供服务的Configuration类。
 	 *
 	 * Prepare the Configuration classes for servicing bean requests at runtime
 	 * by replacing them with CGLIB-enhanced subclasses.

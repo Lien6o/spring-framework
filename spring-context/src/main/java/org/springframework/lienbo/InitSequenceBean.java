@@ -13,11 +13,12 @@ import javax.annotation.PostConstruct;
 public class InitSequenceBean implements InitializingBean {
 	/**
 	 * result:
-	 *
+	 * 前置 BeanPostProcessor
 	 * InitSequenceBean: construct
 	 * InitSequenceBean: postConstruct
 	 * InitSequenceBean: afterPropertiesSet
 	 * InitSequenceBean: initMethod
+	 * 后置 BeanPostProcessor
 	 */
 
 	public InitSequenceBean() {

@@ -407,6 +407,16 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		return initializeBean(beanName, existingBean, null);
 	}
 
+	/**
+	 * 调用后置处理器
+	 * @param existingBean the existing bean instance
+	 * @param beanName the name of the bean, to be passed to it if necessary
+	 * (only passed to {@link BeanPostProcessor BeanPostProcessors};
+	 * can follow the {@link #ORIGINAL_INSTANCE_SUFFIX} convention in order to
+	 * enforce the given instance to be returned, i.e. no proxies etc)
+	 * @return
+	 * @throws BeansException
+	 */
 	@Override
 	public Object applyBeanPostProcessorsBeforeInitialization(Object existingBean, String beanName)
 			throws BeansException {
@@ -428,6 +438,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 
 		Object result = existingBean;
 		for (BeanPostProcessor processor : getBeanPostProcessors()) {
+			// TODO [VIC] AnnotationAwareAspectJAutoProxyCreator
 			Object current = processor.postProcessAfterInitialization(result, beanName);
 			if (current == null) {
 				return result;
@@ -506,8 +517,9 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 
 		try {
 			// Give BeanPostProcessors a chance to return a proxy instead of the target bean instance.
-			// todo 给BeanPostProcessors一个返回代理而不是目标bean实例的机会。 程序员不要使用 去除依赖关系
-			//  默认 null
+			// TODO [VIC]  实例化之前解决 AOP实现细节所在 注意时间点发生在 doCreateBean 之前
+			//  给BeanPostProcessors一个返回代理而不是目标bean实例的机会。 程序员不要使用 去除依赖关系
+			//  默认 null 注意会 直接返回bean !
 			Object bean = resolveBeforeInstantiation(beanName, mbdToUse);
 			if (bean != null) {
 				return bean;
@@ -519,7 +531,8 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		}
 
 		try {
-			// todo core doCreateBean
+			// TODO [VIC]  如果没有生成代理对象，就按正常流程走，生成Bean对象
+			//  初始化 initializeBean
 			Object beanInstance = doCreateBean(beanName, mbdToUse, args);
 			if (logger.isTraceEnabled()) {
 				logger.trace("Finished creating instance of bean '" + beanName + "'");
@@ -560,10 +573,10 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			instanceWrapper = this.factoryBeanInstanceCache.remove(beanName);
 		}
 		if (instanceWrapper == null) {
-			// todo 包装bean 有很多后续操作：设置bd 的一些属性
+			// TODO [VIC] 包装bean 有很多后续操作：设置bd 的一些属性
 			instanceWrapper = createBeanInstance(beanName, mbd, args);
 		}
-		// todo bean 是原生对象
+		// TODO [VIC] bean 是原生对象
 		//  获取原生对象 通过反射处理
 		final Object bean = instanceWrapper.getWrappedInstance();
 		Class<?> beanType = instanceWrapper.getWrappedClass();
@@ -598,12 +611,13 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		}
 
 		// Initialize the bean instance.
+		// TODO [VIC] 初始化bean实例。 实例化开始
 		Object exposedObject = bean;
 		try {
-			// todo 自动装配 组装Bean 设置属性 [非常非常重要]
+			// TODO [VIC] 自动装配 组装Bean 设置属性 [非常非常重要]
 			populateBean(beanName, mbd, instanceWrapper);
-			// todo
-			//  AOP 关键性的一步 执行 [初始化方法的执行] [BeanPostProcess方法的执行]
+			// TODO [VIC] Spring 生命周期关键所在
+			//  关键性的一步 执行 [初始化方法的执行] [BeanPostProcess方法的执行]
 			exposedObject = initializeBean(beanName, exposedObject, mbd);
 		}
 		catch (Throwable ex) {
@@ -615,7 +629,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 						mbd.getResourceDescription(), beanName, "Initialization of bean failed", ex);
 			}
 		}
-		// todo  循环引用解决 earlySingletonExposure=true
+		// TODO [VIC] 循环引用解决 earlySingletonExposure=true
 		if (earlySingletonExposure) {
 			Object earlySingletonReference = getSingleton(beanName, false);
 			if (earlySingletonReference != null) {
@@ -625,7 +639,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 				else if (!this.allowRawInjectionDespiteWrapping && hasDependentBean(beanName)) {
 					String[] dependentBeans = getDependentBeans(beanName);
 					Set<String> actualDependentBeans = new LinkedHashSet<>(dependentBeans.length);
-					// todo 依赖的beanb
+					// TODO [VIC]  依赖的 bean
 					for (String dependentBean : dependentBeans) {
 						if (!removeSingletonIfCreatedForTypeCheckOnly(dependentBean)) {
 							actualDependentBeans.add(dependentBean);
@@ -1124,6 +1138,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			if (!mbd.isSynthetic() && hasInstantiationAwareBeanPostProcessors()) {
 				Class<?> targetType = determineTargetType(beanName, mbd);
 				if (targetType != null) {
+					// todo 调用InstantiationAwareBeanPostProcessor接口的地方
 					bean = applyBeanPostProcessorsBeforeInstantiation(targetType, beanName);
 					if (bean != null) {
 						bean = applyBeanPostProcessorsAfterInitialization(bean, beanName);
@@ -1417,7 +1432,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			for (BeanPostProcessor bp : getBeanPostProcessors()) {
 				if (bp instanceof InstantiationAwareBeanPostProcessor) {
 					InstantiationAwareBeanPostProcessor ibp = (InstantiationAwareBeanPostProcessor) bp;
-					// todo  后置处理器
+					// TODO [VIC]  后置处理器
 					if (!ibp.postProcessAfterInstantiation(bw.getWrappedInstance(), beanName)) {
 						continueWithPropertyPopulation = false;
 						break;
@@ -1832,12 +1847,13 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		Object wrappedBean = bean;
 		// 是合成的
 		if (mbd == null || !mbd.isSynthetic()) {
-			// todo 调用所有实现BeanPostProcessors接口的 postProcessBeforeInitialization
+			// TODO [VIC]  调用所有实现BeanPostProcessors 接口的 postProcessBeforeInitialization
+			//  初始化
 			wrappedBean = applyBeanPostProcessorsBeforeInitialization(wrappedBean, beanName);
 		}
 
 		try {
-			// TODO [初始化] 搜索使用
+			// TODO [VIC] [初始化] 搜索使用
 			//  执行bean的生命周期回调中的init方法 InitializingBean接口 的afterPropertiesSet方法 回调接口
 			//  1：spring为bean提供了两种初始化bean的方式，实现InitializingBean接口，实现afterPropertiesSet方法，或者在配置文件中同过init-method指定，两种方式可以同时使用
 			//  2：实现InitializingBean接口是直接调用afterPropertiesSet方法，比通过反射调用init-method指定的方法效率相对来说要高点。但是init-method方式消除了对spring的依赖
@@ -1858,8 +1874,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 					beanName, "Invocation of init method failed", ex);
 		}
 		if (mbd == null || !mbd.isSynthetic()) {
-			// todo 调用所有实现BeanPostProcessors接口的 postProcessAfterInitialization
-			//  代理在这里执行生效
+			// TODO [VIC] 调用所有实现BeanPostProcessors接口的 postProcessAfterInitialization
 			wrappedBean = applyBeanPostProcessorsAfterInitialization(wrappedBean, beanName);
 		}
 
@@ -1907,7 +1922,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			}
 			if (System.getSecurityManager() != null) {
 				try {
-					// todo afterPropertiesSet 执行
+					// TODO [VIC]  afterPropertiesSet 执行
 					AccessController.doPrivileged((PrivilegedExceptionAction<Object>) () -> {
 						((InitializingBean) bean).afterPropertiesSet();
 						return null;
@@ -1922,14 +1937,14 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 				((InitializingBean) bean).afterPropertiesSet();
 			}
 		}
-		// todo 判断是否指定了init-method方法，如果指定了init-method方法，则再调用制定的init-method
+		// TODO [VIC]  判断是否指定了init-method方法，如果指定了init-method方法，则再调用制定的init-method
 		if (mbd != null && bean.getClass() != NullBean.class) {
-			// todo 获取初始化方法名称
+			// TODO [VIC]  获取初始化方法名称
 			String initMethodName = mbd.getInitMethodName();
 			if (StringUtils.hasLength(initMethodName)
 					&& !(isInitializingBean && "afterPropertiesSet".equals(initMethodName))
 					&& !mbd.isExternallyManagedInitMethod(initMethodName)) {
-				// todo 反射调用init-method方法
+				// TODO [VIC]  反射调用init-method方法
 				invokeCustomInitMethod(beanName, bean, mbd);
 			}
 		}

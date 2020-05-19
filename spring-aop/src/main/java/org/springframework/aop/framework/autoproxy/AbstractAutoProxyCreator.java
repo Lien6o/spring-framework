@@ -290,12 +290,14 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 	 * Create a proxy with the configured interceptors if the bean is
 	 * identified as one to proxy by the subclass.
 	 * @see #getAdvicesAndAdvisorsForBean
+	 * TODO [VIC] AOP
 	 */
 	@Override
 	public Object postProcessAfterInitialization(@Nullable Object bean, String beanName) {
 		if (bean != null) {
 			Object cacheKey = getCacheKey(bean.getClass(), beanName);
 			if (this.earlyProxyReferences.remove(cacheKey) != bean) {
+				// TODO 代理
 				return wrapIfNecessary(bean, beanName, cacheKey);
 			}
 		}
@@ -326,27 +328,33 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 
 	/**
 	 * Wrap the given bean if necessary, i.e. if it is eligible for being proxied.
+	 * TODO [VIC] 必要时包装给定的bean，即 是否有资格被代理。
 	 * @param bean the raw bean instance
 	 * @param beanName the name of the bean
 	 * @param cacheKey the cache key for metadata access
 	 * @return a proxy wrapping the bean, or the raw bean instance as-is
 	 */
 	protected Object wrapIfNecessary(Object bean, String beanName, Object cacheKey) {
+		// 是否已经处理过
 		if (StringUtils.hasLength(beanName) && this.targetSourcedBeans.contains(beanName)) {
 			return bean;
 		}
+		// 无需增强
 		if (Boolean.FALSE.equals(this.advisedBeans.get(cacheKey))) {
 			return bean;
 		}
+		// 给定的 bean 类是否代表一个基础设施类，基础设施类不应代理，或者配置了指定 bean 不需要自动代理
 		if (isInfrastructureClass(bean.getClass()) || shouldSkip(bean.getClass(), beanName)) {
 			this.advisedBeans.put(cacheKey, Boolean.FALSE);
 			return bean;
 		}
 
 		// Create proxy if we have advice.
+		// 如果存在增强方法则创建代理（*重要*） 如果Bean是要被代理的对象的话，取得Bean相关的Interceptor
 		Object[] specificInterceptors = getAdvicesAndAdvisorsForBean(bean.getClass(), beanName, null);
 		if (specificInterceptors != DO_NOT_PROXY) {
 			this.advisedBeans.put(cacheKey, Boolean.TRUE);
+			// 创建代理（*重要*）创建代理
 			Object proxy = createProxy(
 					bean.getClass(), beanName, specificInterceptors, new SingletonTargetSource(bean));
 			this.proxyTypes.put(cacheKey, proxy.getClass());

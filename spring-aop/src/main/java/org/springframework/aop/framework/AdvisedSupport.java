@@ -470,6 +470,7 @@ public class AdvisedSupport extends ProxyConfig implements Advised {
 
 
 	/**
+	 * TODO vic 获取拦截器和动态拦截建议
 	 * Determine a list of {@link org.aopalliance.intercept.MethodInterceptor} objects
 	 * for the given method, based on this configuration.
 	 * @param method the proxied method

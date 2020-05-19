@@ -343,7 +343,7 @@ public abstract class AbstractPlatformTransactionManager implements PlatformTran
 
 		// Use defaults if no transaction definition given.
 		TransactionDefinition def = (definition != null ? definition : TransactionDefinition.withDefaults());
-
+		// 这里是开启一个事务，不同的事务类型(JPA  kafka jta等有不同的实现)
 		Object transaction = doGetTransaction();
 		boolean debugEnabled = logger.isDebugEnabled();
 

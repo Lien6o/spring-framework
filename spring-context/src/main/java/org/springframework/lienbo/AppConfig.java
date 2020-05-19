@@ -3,6 +3,7 @@ package org.springframework.lienbo;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
 
 /**
  * @author: Lien6o
@@ -11,6 +12,7 @@ import org.springframework.context.annotation.Configuration;
  * @version: v1.0
  */
 @Configuration
+@EnableAspectJAutoProxy(proxyTargetClass = true)
 @ComponentScan("org.springframework.lienbo")
 public class AppConfig {
 

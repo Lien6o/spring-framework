@@ -331,7 +331,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 				if (mbd.isSingleton()) {
 					sharedInstance = getSingleton(beanName, () -> {
 						try {
-							// todo core
+							// TODO 实例化 代理 都在这里执行
 							return createBean(beanName, mbd, args);
 						}
 						catch (BeansException ex) {

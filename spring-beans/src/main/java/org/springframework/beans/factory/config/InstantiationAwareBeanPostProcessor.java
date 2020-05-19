@@ -43,10 +43,18 @@ import org.springframework.lang.Nullable;
  * @since 1.2
  * @see org.springframework.aop.framework.autoproxy.AbstractAutoProxyCreator#setCustomTargetSourceCreators
  * @see org.springframework.aop.framework.autoproxy.target.LazyInitTargetSourceCreator
+ * todo [VIC]  实现AOP
+ * 		InstantiationAwareBeanPostProcessor虽然是BeanPostProcessor的子接口，
+ * 		但它的调用时间点其发生在Bean实例化前，在真正调用doCreate()创建bean实例之前。
+ * 		链接：https://www.jianshu.com/p/867991f3daa0
+ *
+ * @see  org.springframework.aop.aspectj.annotation.AnnotationAwareAspectJAutoProxyCreator
  */
 public interface InstantiationAwareBeanPostProcessor extends BeanPostProcessor {
 
 	/**
+	 * todo 在实例化之前执行 比 BeanPostProcessor#postProcessBeforeInitialization 的执行时机还要早！
+	 *
 	 * Apply this BeanPostProcessor <i>before the target bean gets instantiated</i>.
 	 * The returned bean object may be a proxy to use instead of the target bean,
 	 * effectively suppressing default instantiation of the target bean.

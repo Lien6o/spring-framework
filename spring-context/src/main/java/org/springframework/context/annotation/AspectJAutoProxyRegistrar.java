@@ -30,6 +30,20 @@ import org.springframework.core.type.AnnotationMetadata;
  * @author Juergen Hoeller
  * @since 3.1
  * @see EnableAspectJAutoProxy
+ *
+ * todo
+ *  1、@EnableAspectJAutoProxy 会注册一个AnnotationAwareAspectJAutoProxyCreator
+ *  2、AnnotationAwareAspectJAutoProxyCreator是一个InstantiationAwareBeanPostProcessor
+ *  3、创建流程
+ *  	1 registerBeanPostProcessors() 注册后置处理器，创建AnnotationAwareAspectJAutoProxyCreator
+ *  	2 finishBeanFactoryInitialization 初始化剩下的单实例Bean
+ *  		1 创建Bean和切面
+ *  		2 AnnotationAwareAspectJAutoProxyCreator拦截创建过程
+ * 			3 创建完Bean判断是否需要增强。通过BeanPostProcessorsAfterInitialization，wrapIfNecessary() 包装代理对象
+ *  4、执行目标方法
+ *  	1 获取拦截器链（advisor包装为Interceptor）
+ *  	2 递归调用拦截器链
+ *  		前置通知、目标方法、后置通知、返回通知、异常通知
  */
 class AspectJAutoProxyRegistrar implements ImportBeanDefinitionRegistrar {
 
@@ -43,6 +57,11 @@ class AspectJAutoProxyRegistrar implements ImportBeanDefinitionRegistrar {
 			AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
 		// todo AOP实现类 如有必要，注册Aspect J注释自动代理创建器
 		//  bdMap 注入了这个属性
+		//  注册AspectJAnnotationAutoProxyCreator，注册类的定义信息（不是对象，还没有实例化）
+		//  注册AnnotationAwareAspectJAutoProxyCreator的目的是：
+		//  把这个类的BeanDefinition通过registerBeanDefinition方法（DefaultListableBeanFactory类中）
+		//  加入到beanDefinitionMap中，作为一个Bean让Spring管理，这样Spring就可以随意取得它了。
+
 		AopConfigUtils.registerAspectJAnnotationAutoProxyCreatorIfNecessary(registry);
 
 		AnnotationAttributes enableAspectJAutoProxy =
