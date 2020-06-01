@@ -290,14 +290,14 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 	 * Create a proxy with the configured interceptors if the bean is
 	 * identified as one to proxy by the subclass.
 	 * @see #getAdvicesAndAdvisorsForBean
-	 * TODO [VIC] AOP
+	 * TODO [VIC] AOP  初始化后的后处理
 	 */
 	@Override
 	public Object postProcessAfterInitialization(@Nullable Object bean, String beanName) {
 		if (bean != null) {
 			Object cacheKey = getCacheKey(bean.getClass(), beanName);
 			if (this.earlyProxyReferences.remove(cacheKey) != bean) {
-				// TODO 代理
+				// TODO [VIC] AOP 代理
 				return wrapIfNecessary(bean, beanName, cacheKey);
 			}
 		}
@@ -350,7 +350,8 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 		}
 
 		// Create proxy if we have advice.
-		// 如果存在增强方法则创建代理（*重要*） 如果Bean是要被代理的对象的话，取得Bean相关的Interceptor
+		// todo 如果存在增强方法则创建代理（*重要*） 如果Bean是要被代理的对象的话，取得Bean相关的Interceptor
+		//  getAdvicesAndAdvisorsForBean  是抽象方法 需子类重写扩展
 		Object[] specificInterceptors = getAdvicesAndAdvisorsForBean(bean.getClass(), beanName, null);
 		if (specificInterceptors != DO_NOT_PROXY) {
 			this.advisedBeans.put(cacheKey, Boolean.TRUE);
@@ -454,9 +455,11 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 			AutoProxyUtils.exposeTargetClass((ConfigurableListableBeanFactory) this.beanFactory, beanName, beanClass);
 		}
 
+		// 创建ProxyFactory
 		ProxyFactory proxyFactory = new ProxyFactory();
 		proxyFactory.copyFrom(this);
 
+		// 是代理目标类还是目标接口，用于后面区分使用哪种代理实现，jdk的或者cglib的
 		if (!proxyFactory.isProxyTargetClass()) {
 			if (shouldProxyTargetClass(beanClass, beanName)) {
 				proxyFactory.setProxyTargetClass(true);
@@ -466,16 +469,22 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 			}
 		}
 
+		// 构建Advisor
 		Advisor[] advisors = buildAdvisors(beanName, specificInterceptors);
+		// 配置proxyFactory
 		proxyFactory.addAdvisors(advisors);
 		proxyFactory.setTargetSource(targetSource);
+		// 自定义proxyFactory，子类可以去扩展
 		customizeProxyFactory(proxyFactory);
 
+		// 是否冻结配置，如果冻结了advice就不能再修改了
 		proxyFactory.setFrozen(this.freezeProxy);
+		// Advisors是否已经针对目标类过滤过了
 		if (advisorsPreFiltered()) {
 			proxyFactory.setPreFiltered(true);
 		}
 
+		// 生成代理
 		return proxyFactory.getProxy(getProxyClassLoader());
 	}
 

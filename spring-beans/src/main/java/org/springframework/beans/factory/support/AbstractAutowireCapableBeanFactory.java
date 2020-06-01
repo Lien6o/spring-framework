@@ -439,6 +439,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		Object result = existingBean;
 		for (BeanPostProcessor processor : getBeanPostProcessors()) {
 			// TODO [VIC] AnnotationAwareAspectJAutoProxyCreator
+			//  org.springframework.aop.framework.autoproxy.AbstractAutoProxyCreator.postProcessAfterInitialization
 			Object current = processor.postProcessAfterInitialization(result, beanName);
 			if (current == null) {
 				return result;
@@ -520,6 +521,9 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			// TODO [VIC]  实例化之前解决 AOP实现细节所在 注意时间点发生在 doCreateBean 之前
 			//  给BeanPostProcessors一个返回代理而不是目标bean实例的机会。 程序员不要使用 去除依赖关系
 			//  默认 null 注意会 直接返回bean !
+			//  resolveBeforeInstantiation只是针对有自定义的targetsource，因为自定义的targetsource不是spring的bean
+			//  那么肯定不需要进行后续的一系列的实例化 初始化。所以可以在resolveBeforeInstantiation直接进行proxy
+
 			Object bean = resolveBeforeInstantiation(beanName, mbdToUse);
 			if (bean != null) {
 				return bean;
@@ -600,6 +604,8 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 
 		// Eagerly cache singletons to be able to resolve circular references
 		// even when triggered by lifecycle interfaces like BeanFactoryAware.
+		// 所谓提前创建代理，是指的下面这种情况：
+		// 为了解决循环依赖问题，在 populateBean 之前，如果允许提前暴露，spring 会将实例化好的 bean 放入 singletonFactory 中。
 		boolean earlySingletonExposure = (mbd.isSingleton() && this.allowCircularReferences &&
 				isSingletonCurrentlyInCreation(beanName));
 		if (earlySingletonExposure) {
@@ -607,6 +613,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 				logger.trace("Eagerly caching bean '" + beanName +
 						"' to allow for resolving potential circular references");
 			}
+			// 添加bean对应的ObjectFactory，用于创建singleton bean，以及解决循环依赖
 			addSingletonFactory(beanName, () -> getEarlyBeanReference(beanName, mbd, bean));
 		}
 
@@ -982,6 +989,10 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	 * @param mbd the merged bean definition for the bean
 	 * @param bean the raw bean instance
 	 * @return the object to expose as bean reference
+	 *
+	 * 此时也应该返回代理后的实例，这也就需要提前创建代理。
+	 * 要在此创建代理，AbstractAutoProxyCreator
+	 * 需要实现 SmartInstantiationAwareBeanPostProcessor 的 getEarlyBeanReference 方法。
 	 */
 	protected Object getEarlyBeanReference(String beanName, RootBeanDefinition mbd, Object bean) {
 		Object exposedObject = bean;
@@ -1139,8 +1150,11 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 				Class<?> targetType = determineTargetType(beanName, mbd);
 				if (targetType != null) {
 					// todo 调用InstantiationAwareBeanPostProcessor接口的地方
+					//  实例化前置操作
 					bean = applyBeanPostProcessorsBeforeInstantiation(targetType, beanName);
 					if (bean != null) {
+						// todo 初始化后置操作
+						//  org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.applyBeanPostProcessorsAfterInitialization
 						bean = applyBeanPostProcessorsAfterInitialization(bean, beanName);
 					}
 				}
