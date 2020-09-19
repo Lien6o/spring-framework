@@ -1,6 +1,7 @@
 package org.springframework.lienbo;
 
 import org.springframework.aop.support.AopUtils;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 /**
@@ -13,7 +14,7 @@ public class CoreEntry {
 
 	public static void main(String[] args) {
 		System.out.println("main");
-		AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(AppConfig.class);
+		ApplicationContext context = new AnnotationConfigApplicationContext(AppConfig.class);
 //
 //		TryAutowiredMap map = (TryAutowiredMap) context.getBean("tryAutowiredMap");
 //		System.err.println(map.toString());
@@ -21,6 +22,5 @@ public class CoreEntry {
 //		map.print();
 		AOPDummy aopDummy = context.getBean(AOPDummy.class);
 		aopDummy.testAop();
-
-	}
+ 	}
 }

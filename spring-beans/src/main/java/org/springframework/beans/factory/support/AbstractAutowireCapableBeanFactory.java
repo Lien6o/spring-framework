@@ -1875,7 +1875,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			//  通过 debug 和调用栈找到类InitDestroyAnnotationBeanPostProcessor, 其中的核心方法，
 			//  即 @PostConstruct 方法调用的入口：从命名上，我们就可以得到某些信息——这是一个BeanPostProcessor。想到了什么？在也谈Spring容器的生命周期中，
 			//  提到过BeanPostProcessor的postProcessBeforeInitialization是在Bean生命周期中afterPropertiesSet和init-method之前被调用的。
-			//  另外通过跟踪，@PostConstruct 方法的调用方式也是通过发射机制。
+			//  另外通过跟踪，@PostConstruct 方法的调用方式也是通过反射机制。
 			//  总结：
 			//  1、spring bean的初始化执行顺序：
 			//  构造方法 --> @PostConstruct注解的方法 --> afterPropertiesSet方法 --> init-method指定的方法。

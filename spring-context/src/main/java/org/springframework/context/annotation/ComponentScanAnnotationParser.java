@@ -73,13 +73,13 @@ class ComponentScanAnnotationParser {
 	}
 
 	/**
-	 * 解析ComponentScans 类
+	 * TODO [VIC] 解析ComponentScans 类
 	 * @param componentScan
 	 * @param declaringClass
 	 * @return
 	 */
 	public Set<BeanDefinitionHolder> parse(AnnotationAttributes componentScan, final String declaringClass) {
-		// TODO 这里创建了  ClassPathBeanDefinitionScanner 所以说 初始化 的那个 scanner 没啥卵用
+		// TODO [VIC] 这里创建了  ClassPathBeanDefinitionScanner 所以说 初始化 的那个 scanner 没啥卵用
 		ClassPathBeanDefinitionScanner scanner = new ClassPathBeanDefinitionScanner(this.registry,
 				componentScan.getBoolean("useDefaultFilters"), this.environment, this.resourceLoader);
 
@@ -104,6 +104,7 @@ class ComponentScanAnnotationParser {
 				scanner.addIncludeFilter(typeFilter);
 			}
 		}
+		// 添加过滤条件
 		for (AnnotationAttributes filter : componentScan.getAnnotationArray("excludeFilters")) {
 			for (TypeFilter typeFilter : typeFiltersFor(filter)) {
 				scanner.addExcludeFilter(typeFilter);
@@ -135,7 +136,7 @@ class ComponentScanAnnotationParser {
 				return declaringClass.equals(className);
 			}
 		});
-		// todo 这里是核心
+		// todo [VIC] 这里是核心
 		return scanner.doScan(StringUtils.toStringArray(basePackages));
 	}
 
