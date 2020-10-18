@@ -316,6 +316,10 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 
 
 	/**
+	 * todo [VIC Spring 事务管理器]
+	 *  TransactionAspectSupport 类的 invokeWithinTransaction 方法，它在获取事务管理器的时候，只能获取一个。
+	 *  之所以没有指定事务管理器也能运行，是因为加了 @Primary 注解，也就是说使用了默认的事务管理器，
+	 *
 	 * General delegate for around-advice-based subclasses, delegating to several other template
 	 * methods on this class. Able to handle {@link CallbackPreferringPlatformTransactionManager}
 	 * as well as regular {@link PlatformTransactionManager} implementations.
@@ -332,8 +336,9 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 		// If the transaction attribute is null, the method is non-transactional.
 		TransactionAttributeSource tas = getTransactionAttributeSource();
 		final TransactionAttribute txAttr = (tas != null ? tas.getTransactionAttribute(method, targetClass) : null);
+		// 确定事务管理器
 		final TransactionManager tm = determineTransactionManager(txAttr);
-
+		// 使用Spring实现反应式事务
 		if (this.reactiveAdapterRegistry != null && tm instanceof ReactiveTransactionManager) {
 			ReactiveTransactionSupport txSupport = this.transactionSupportCache.computeIfAbsent(method, key -> {
 				if (KotlinDetector.isKotlinType(method.getDeclaringClass()) && KotlinDelegate.isSuspend(method)) {
