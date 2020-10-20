@@ -501,6 +501,7 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 		customizeProxyFactory(proxyFactory);
 
 		// 是否冻结配置，如果冻结了advice就不能再修改了
+		// 用来控制proxyFactory被配置之后，是否还允许修改通知。默认值为false（即在代理被配置之后，不允许修改代理类的配置）
 		proxyFactory.setFrozen(this.freezeProxy);
 		// Advisors是否已经针对目标类过滤过了
 		if (advisorsPreFiltered()) {
