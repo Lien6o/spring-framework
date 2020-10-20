@@ -68,7 +68,8 @@ public interface PlatformTransactionManager extends TransactionManager {
 	 * @see TransactionDefinition#isReadOnly
 	 */
 	TransactionStatus getTransaction(@Nullable TransactionDefinition definition)
-			throws TransactionException;
+			throws TransactionException;    Object[] specificInterceptors = getAdvicesAndAdvisorsForBean(bean.getClass(), beanName, null);
+
 
 	/**
 	 * Commit the given transaction, with regard to its status. If the transaction

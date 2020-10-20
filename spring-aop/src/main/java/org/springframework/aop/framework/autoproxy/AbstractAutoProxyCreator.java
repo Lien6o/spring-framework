@@ -88,6 +88,23 @@ import org.springframework.util.StringUtils;
  * @see #getAdvicesAndAdvisorsForBean
  * @see BeanNameAutoProxyCreator
  * @see DefaultAdvisorAutoProxyCreator
+ *
+ *
+ * AnnotationAwareAspectJAutoProxyCreator 是 AbstractAutoProxyCreator 的子类
+ *
+ * AnnotationAwareAspectJAutoProxyCreator 实现了几个重要的扩展接口（可能是在父类中实现）：
+ *
+ * 1）实现了 BeanPostProcessor 接口：实现了 postProcessAfterInitialization 方法。
+ *
+ * 2）实现了 InstantiationAwareBeanPostProcessor 接口：实现了 postProcessBeforeInstantiation 方法。
+ *
+ * 3）实现了 SmartInstantiationAwareBeanPostProcessor 接口：实现了 predictBeanType 方法、getEarlyBeanReference 方法。
+ *
+ * 4）实现了 BeanFactoryAware 接口，实现了 setBeanFactory 方法。
+ *
+ * 对于 AOP 来说，postProcessAfterInitialization 是我们重点分析的内容，因为在该方法中，会对 bean 进行代理，该方法由父类 AbstractAutoProxyCreator 实现。
+ *
+ * https://zhuanlan.zhihu.com/p/104521455
  */
 @SuppressWarnings("serial")
 public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
@@ -335,33 +352,39 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 	 * @return a proxy wrapping the bean, or the raw bean instance as-is
 	 */
 	protected Object wrapIfNecessary(Object bean, String beanName, Object cacheKey) {
-		// 是否已经处理过
+		// 1.判断当前bean是否在targetSourcedBeans缓存中存在（已经处理过），如果存在，则直接返回当前bean
 		if (StringUtils.hasLength(beanName) && this.targetSourcedBeans.contains(beanName)) {
 			return bean;
 		}
-		// 无需增强
+		// 在advisedBeans缓存中存在，并且value为false，则代表无需处理
 		if (Boolean.FALSE.equals(this.advisedBeans.get(cacheKey))) {
 			return bean;
 		}
-		// 给定的 bean 类是否代表一个基础设施类，基础设施类不应代理，或者配置了指定 bean 不需要自动代理
+		// 3.bean的类是aop基础设施类 || bean应该跳过，则标记为无需处理，并返回
 		if (isInfrastructureClass(bean.getClass()) || shouldSkip(bean.getClass(), beanName)) {
 			this.advisedBeans.put(cacheKey, Boolean.FALSE);
 			return bean;
 		}
 
 		// Create proxy if we have advice.
+		// 4.获取当前bean的Advices和Advisors
 		// todo 如果存在增强方法则创建代理（*重要*） 如果Bean是要被代理的对象的话，取得Bean相关的Interceptor
 		//  getAdvicesAndAdvisorsForBean  是抽象方法 需子类重写扩展
+		//  eg: SEATA 中 重新改方法设置了 org.aopalliance.intercept.MethodInterceptor.java
+		//  支持的类型：@link org.springframework.aop.framework.adapter.DefaultAdvisorAdapterRegistry.wrap
 		Object[] specificInterceptors = getAdvicesAndAdvisorsForBean(bean.getClass(), beanName, null);
+		// 5.如果存在增强器则创建代理
 		if (specificInterceptors != DO_NOT_PROXY) {
+			// 5.1 创建代理对象：这边SingletonTargetSource的target属性存放的就是我们原来的bean实例（也就是被代理对象），
+			// 用于最后增加逻辑执行完毕后，通过反射执行我们真正的方法时使用（method.invoke(bean, args)）
 			this.advisedBeans.put(cacheKey, Boolean.TRUE);
-			// 创建代理（*重要*）创建代理
+			// 创建代理（*重要*）创建代理 将cacheKey -> 代理类的class放到缓存
 			Object proxy = createProxy(
 					bean.getClass(), beanName, specificInterceptors, new SingletonTargetSource(bean));
 			this.proxyTypes.put(cacheKey, proxy.getClass());
 			return proxy;
 		}
-
+		// 6.标记为无需处理
 		this.advisedBeans.put(cacheKey, Boolean.FALSE);
 		return bean;
 	}
