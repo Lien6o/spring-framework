@@ -184,6 +184,8 @@ final class JdkDynamicAopProxy implements AopProxy, InvocationHandler, Serializa
 					// 继承自Advised接口的类
 					&& method.getDeclaringClass().isAssignableFrom(Advised.class)) {
 				// Service invocations on ProxyConfig with the proxy config...
+
+				// 反射调用 执行advised 的 method
 				return AopUtils.invokeJoinpointUsingReflection(this.advised, method, args);
 			}
 
