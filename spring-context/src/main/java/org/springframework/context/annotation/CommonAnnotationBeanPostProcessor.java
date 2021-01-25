@@ -392,6 +392,7 @@ public class CommonAnnotationBeanPostProcessor extends InitDestroyAnnotationBean
 					}
 					currElements.add(new EjbRefElement(field, field, null));
 				}
+				// todo 解析 Resource注解
 				else if (field.isAnnotationPresent(Resource.class)) {
 					if (Modifier.isStatic(field.getModifiers())) {
 						throw new IllegalStateException("@Resource annotation is not supported on static fields");

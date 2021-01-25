@@ -14,4 +14,3 @@ public class MyClassPathBeanDefinitionScanner extends ClassPathBeanDefinitionSca
 
 	}
 }
-TransactionAspectSupport

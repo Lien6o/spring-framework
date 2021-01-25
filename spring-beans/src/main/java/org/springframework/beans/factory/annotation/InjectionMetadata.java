@@ -114,7 +114,7 @@ public class InjectionMetadata {
 				if (logger.isTraceEnabled()) {
 					logger.trace("Processing injected element of bean '" + beanName + "': " + element);
 				}
-				// todo 属性注入
+				// TODO[VIC] 属性注入 override 方法 AutowiredFieldElement  AutowiredMethodElement
 				element.inject(target, beanName, pvs);
 			}
 		}

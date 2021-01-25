@@ -621,7 +621,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		// TODO [VIC] 初始化bean实例。 实例化开始
 		Object exposedObject = bean;
 		try {
-			// TODO [VIC] 自动装配 组装Bean 设置属性 [非常非常重要]
+			// TODO [VIC] populateBean 自动装配 组装Bean 设置属性 [非常非常重要]
 			populateBean(beanName, mbd, instanceWrapper);
 			// TODO [VIC] Spring 生命周期关键所在
 			//  关键性的一步 执行 [初始化方法的执行] [BeanPostProcess方法的执行]
@@ -1444,6 +1444,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 
 		if (!mbd.isSynthetic() && hasInstantiationAwareBeanPostProcessors()) {
 			for (BeanPostProcessor bp : getBeanPostProcessors()) {
+				// eg.AutowiredAnnotationBeanPostProcessor CommonAnnotationBeanPostProcessor
 				if (bp instanceof InstantiationAwareBeanPostProcessor) {
 					InstantiationAwareBeanPostProcessor ibp = (InstantiationAwareBeanPostProcessor) bp;
 					// TODO [VIC]  后置处理器
@@ -1460,10 +1461,11 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		}
 
 		PropertyValues pvs = (mbd.hasPropertyValues() ? mbd.getPropertyValues() : null);
-
+		// todo 获取装配模式
 		int resolvedAutowireMode = mbd.getResolvedAutowireMode();
 		// todo 默认不是AUTOWIRE_BY_NAME或者AUTOWIRE_BY_TYPE
 		//  这里是处理自动装配类型的, autowire=byName 或者byType。如果不配置不走这个分支，xml或注解都可配
+		//  这里是AUTOWIRE_NO 第一次不会进入
 		if (resolvedAutowireMode == AUTOWIRE_BY_NAME || resolvedAutowireMode == AUTOWIRE_BY_TYPE) {
 			MutablePropertyValues newPvs = new MutablePropertyValues(pvs);
 			// Add property values based on autowire by name if applicable.
@@ -1487,7 +1489,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			}
 			for (BeanPostProcessor bp : getBeanPostProcessors()) {
 				// todo InstantiationAwareBeanPostProcessor 接口的子类
-				//  实例化Bean后处理器 eg: AutowiredAnnotationBeanPostProcessor
+				//  [实例化Bean后处理器] eg: AutowiredAnnotationBeanPostProcessor
 				if (bp instanceof InstantiationAwareBeanPostProcessor) {
 					InstantiationAwareBeanPostProcessor ibp = (InstantiationAwareBeanPostProcessor) bp;
 

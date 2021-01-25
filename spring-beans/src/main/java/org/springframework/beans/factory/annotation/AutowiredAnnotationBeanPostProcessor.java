@@ -132,7 +132,10 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 		implements MergedBeanDefinitionPostProcessor, PriorityOrdered, BeanFactoryAware {
 
 	protected final Log logger = LogFactory.getLog(getClass());
-
+	/**
+	 * 需要注入的注解 Autowired  Value Inject
+	 *
+	 */
 	private final Set<Class<? extends Annotation>> autowiredAnnotationTypes = new LinkedHashSet<>(4);
 
 	private String requiredParameterName = "required";
@@ -392,6 +395,15 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 		return (candidateConstructors.length > 0 ? candidateConstructors : null);
 	}
 
+	/**
+	 * TODO [VIC]
+	 *  最新版废弃了 但是原理一样
+	 *
+	 * @param pvs
+	 * @param bean
+	 * @param beanName
+	 * @return
+	 */
 	@Override
 	public PropertyValues postProcessProperties(PropertyValues pvs, Object bean, String beanName) {
 		// todo 寻找属性
@@ -438,7 +450,14 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 		}
 	}
 
-
+	/**
+	 * TODO [VIC] 先从 injectionMetadataCache 缓存里取，如果取不到值，
+	 *  则调用buildAutowiringMetadata 构建 InjectionMetadata ，构建成功后设置到缓存里。
+	 * @param beanName
+	 * @param clazz
+	 * @param pvs
+	 * @return
+	 */
 	private InjectionMetadata findAutowiringMetadata(String beanName, Class<?> clazz, @Nullable PropertyValues pvs) {
 		// Fall back to class name as cache key, for backwards compatibility with custom callers.
 		String cacheKey = (StringUtils.hasLength(beanName) ? beanName : clazz.getName());
@@ -469,7 +488,9 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 
 		do {
 			final List<InjectionMetadata.InjectedElement> currElements = new ArrayList<>();
-
+			/**
+			 * 字段上的注解
+			 */
 			ReflectionUtils.doWithLocalFields(targetClass, field -> {
 				MergedAnnotation<?> ann = findAutowiredAnnotation(field);
 				if (ann != null) {
@@ -483,7 +504,9 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 					currElements.add(new AutowiredFieldElement(field, required));
 				}
 			});
-
+			/**
+			 * 方法上的注解
+			 */
 			ReflectionUtils.doWithLocalMethods(targetClass, method -> {
 				Method bridgedMethod = BridgeMethodResolver.findBridgedMethod(method);
 				if (!BridgeMethodResolver.isVisibilityBridgeMethodPair(method, bridgedMethod)) {
@@ -517,6 +540,12 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 		return InjectionMetadata.forElements(elements, clazz);
 	}
 
+	/**
+	 *
+	 * TODO [VIC]找自动注入的注解
+	 * @param ao
+	 * @return
+	 */
 	@Nullable
 	private MergedAnnotation<?> findAutowiredAnnotation(AccessibleObject ao) {
 		MergedAnnotations annotations = MergedAnnotations.from(ao);
@@ -637,11 +666,13 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 				Assert.state(beanFactory != null, "No BeanFactory available");
 				TypeConverter typeConverter = beanFactory.getTypeConverter();
 				try {
+					// todo vic trace 获取依赖的值！
 					value = beanFactory.resolveDependency(desc, beanName, autowiredBeanNames, typeConverter);
 				}
 				catch (BeansException ex) {
 					throw new UnsatisfiedDependencyException(null, beanName, new InjectionPoint(field), ex);
 				}
+				// todo vic 设置cachedFieldValue缓存！
 				synchronized (this) {
 					if (!this.cached) {
 						if (value != null || this.required) {
@@ -665,6 +696,7 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 			}
 			if (value != null) {
 				ReflectionUtils.makeAccessible(field);
+				// todo vic 设置属性值！
 				field.set(bean, value);
 			}
 		}

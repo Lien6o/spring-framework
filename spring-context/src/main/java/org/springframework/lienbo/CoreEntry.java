@@ -20,7 +20,10 @@ public class CoreEntry {
 //		System.err.println(map.toString());
 //		Thread.interrupted();
 //		map.print();
-		AOPDummy aopDummy = context.getBean(AOPDummy.class);
-		aopDummy.testAop();
- 	}
+//		AOPDummy aopDummy = context.getBean(AOPDummy.class);
+//		aopDummy.testAop();
+
+		ListAbsAutowried contextBean = context.getBean(ListAbsAutowried.class);
+		contextBean.execute();
+	}
 }
