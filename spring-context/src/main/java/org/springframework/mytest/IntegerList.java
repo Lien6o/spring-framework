@@ -1,4 +1,4 @@
-package org.springframework.lienbo;
+package org.springframework.mytest;
 
 import org.springframework.stereotype.Component;
 

@@ -1,6 +1,5 @@
-package org.springframework.lienbo;
+package org.springframework.mytest;
 
-import org.springframework.aop.support.AopUtils;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 

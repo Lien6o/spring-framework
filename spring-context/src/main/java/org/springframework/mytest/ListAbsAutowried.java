@@ -1,10 +1,7 @@
-package org.springframework.lienbo;
+package org.springframework.mytest;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
-import java.util.stream.Stream;
 
 @Component
 public class ListAbsAutowried {

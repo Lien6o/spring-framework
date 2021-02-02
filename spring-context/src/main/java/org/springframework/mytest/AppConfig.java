@@ -1,4 +1,4 @@
-package org.springframework.lienbo;
+package org.springframework.mytest;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -13,7 +13,7 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy;
  */
 @Configuration
 @EnableAspectJAutoProxy(proxyTargetClass = true)
-@ComponentScan("org.springframework.lienbo")
+@ComponentScan("org.springframework.mytest")
 public class AppConfig {
 
 	@Bean(initMethod = "initMethod", name = "initSequenceBean")
