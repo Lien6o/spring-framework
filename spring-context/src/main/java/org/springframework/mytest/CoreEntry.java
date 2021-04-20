@@ -11,6 +11,7 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
  */
 public class CoreEntry {
 
+
 	public static void main(String[] args) {
 		System.out.println("main");
 		ApplicationContext context = new AnnotationConfigApplicationContext(AppConfig.class);
@@ -25,4 +26,6 @@ public class CoreEntry {
 		ListAbsAutowried contextBean = context.getBean(ListAbsAutowried.class);
 		contextBean.execute();
 	}
+
+
 }
