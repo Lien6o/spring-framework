@@ -14,10 +14,11 @@ import org.springframework.stereotype.Component;
 public class AspectProxy {
 
 
-    @Around("@annotation(com.youchat.creative.factory.spring.DummyTransactional)")
+   // @Around("@annotation(com.youchat.creative.factory.spring.DummyTransactional)")
     public Object around(ProceedingJoinPoint joinPoint) throws Throwable {
         System.out.println("AspectProxy: around " + joinPoint.getSignature().getName());
         return joinPoint.proceed();
     }
+
 
 }

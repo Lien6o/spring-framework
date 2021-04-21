@@ -6,6 +6,8 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 
+import java.util.Arrays;
+
 /**
  * @author Lien6o
  */
@@ -17,6 +19,7 @@ public class AopConfigEntry {
 
 	public static void main(String[] args) {
 		ApplicationContext context = new AnnotationConfigApplicationContext(AopConfigEntry.class);
-		DemoAService bean = context.getBean(DemoAService.class);
+ 		String[] beanDefinitionNames = context.getBeanDefinitionNames();
+		System.out.println("Arrays.toString(beanDefinitionNames) = " + Arrays.toString(beanDefinitionNames));
 	}
 }
