@@ -1,6 +1,7 @@
 package org.springframework.mytest;
 
 import org.springframework.core.env.StandardEnvironment;
+import org.springframework.scheduling.support.TaskUtils;
 
 
 /**
@@ -14,5 +15,7 @@ public class EnvTry {
 		StandardEnvironment standardEnvironment = new StandardEnvironment();
 		System.out.println(standardEnvironment.getSystemEnvironment());
 		System.out.println(standardEnvironment.toString());
+		TaskUtils.LOG_AND_PROPAGATE_ERROR_HANDLER.handleError(new RuntimeException());
+
 	}
 }

@@ -489,7 +489,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	@Override
 	protected Object createBean(String beanName, RootBeanDefinition mbd, @Nullable Object[] args)
 			throws BeanCreationException {
-
+		System.out.println("[PROCESS] createBean() start!");
 		if (logger.isTraceEnabled()) {
 			logger.trace("Creating instance of bean '" + beanName + "'");
 		}
@@ -537,6 +537,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		try {
 			// TODO [VIC]  如果没有生成代理对象，就按正常流程走，生成Bean对象
 			//  初始化 initializeBean
+
 			Object beanInstance = doCreateBean(beanName, mbdToUse, args);
 			if (logger.isTraceEnabled()) {
 				logger.trace("Finished creating instance of bean '" + beanName + "'");
@@ -570,7 +571,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	 */
 	protected Object doCreateBean(final String beanName, final RootBeanDefinition mbd, final @Nullable Object[] args)
 			throws BeanCreationException {
-
+		System.out.println("[PROCESS] doCreateBean() start!");
 		// Instantiate the bean.
 		BeanWrapper instanceWrapper = null;
 		if (mbd.isSingleton()) {
@@ -624,7 +625,11 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			// TODO [VIC] populateBean 自动装配 组装Bean 设置属性 [非常非常重要]
 			populateBean(beanName, mbd, instanceWrapper);
 			// TODO [VIC] Spring 生命周期关键所在
-			//  关键性的一步 执行 [初始化方法的执行] [BeanPostProcess方法的执行]
+			//  关键性的一步 执行 [初始化方法的执行] [BeanPostProcess方法的执行]!!!
+			//  关键性的一步 执行 [初始化方法的执行] [BeanPostProcess方法的执行]!!!
+			//  关键性的一步 执行 [初始化方法的执行] [BeanPostProcess方法的执行]!!!
+			//  关键性的一步 执行 [初始化方法的执行] [BeanPostProcess方法的执行]!!!
+			//  关键性的一步 执行 [初始化方法的执行] [BeanPostProcess方法的执行]!!!
 			exposedObject = initializeBean(beanName, exposedObject, mbd);
 		}
 		catch (Throwable ex) {
@@ -673,7 +678,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			throw new BeanCreationException(
 					mbd.getResourceDescription(), beanName, "Invalid destruction signature", ex);
 		}
-
+		System.out.println("[PROCESS] doCreateBean() end!");
 		return exposedObject;
 	}
 
